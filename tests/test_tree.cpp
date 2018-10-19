@@ -6,6 +6,7 @@
 #include "peg/character.h"
 #include "peg/repetition.h"
 #include "peg/whitespace.h"
+#include "peg/atomic.h"
 
 using ::testing::StaticAssertTypeEq;
 
@@ -17,13 +18,6 @@ struct TreeState
 template<typename Parser>
 struct TreeControl
 {
-    // template<template<typename> typename... Actions, typename... States>
-    // static Input match(Input input, States&... states)
-    // {
-    // 	// return input;
-    // 	return Machine<Parser,TrackControl,Actions...>::match(input, states...);
-    // }
-    
     static void start(const Input& input, TreeState& state)
     {
     }
@@ -38,13 +32,13 @@ struct TreeControl
 };
 
 using Ignored = Optional<WhiteSpace>;
-using Number = Sequence<Optional<Choice<Plus,Minus>>,OneOrMore<DecimalDigit>>;
+using Number = Sequence<Ignored,Optional<Choice<Plus,Minus>>,OneOrMore<DecimalDigit>>;
 using Infix = Choice<Minus,Plus,Times,Divide>;
 using Atomic = Number;
-using Expression = List<Atomic,Infix,Ignored>;
+using Expression = Sequence<List<Atomic,Infix,Ignored>,Eof>;
 
 
-TEST(Peg, TreeControl)
+TEST(Peg, TreeControl0)
 {
     using Parser = Expression;
     TreeState state;
@@ -52,6 +46,16 @@ TEST(Peg, TreeControl)
     auto r = Machine<Parser,TreeControl>::match(s, state);
     EXPECT_TRUE(r);
     EXPECT_EQ(r.match(), "1");
+}
+
+TEST(Peg, TreeControl1)
+{
+    using Parser = Expression;
+    TreeState state;
+    auto s = "1 + 1"s;
+    auto r = Machine<Parser,TreeControl>::match(s, state);
+    EXPECT_TRUE(r);
+    EXPECT_EQ(r.match(), "1 + 1");
 }
 
 int main(int argc, char *argv[])

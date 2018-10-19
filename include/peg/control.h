@@ -12,24 +12,20 @@ template<class T>
 constexpr std::string_view get_name()
 {
     char const* p = __PRETTY_FUNCTION__;
-    while (*p++ != '=');
-    for (; *p == ' '; ++p);
-    char const* p2 = p;
-    int count = 1;
-    for (;;++p2)
-    {
-        switch (*p2)
-        {
-        case '[':
-            ++count;
-            break;
-        case ']':
-            --count;
-            if (!count)
-                return {p, std::size_t(p2 - p)};
-        }
-    }
-    return {};
+    
+    while (*p and *p != '=')
+	++p;
+    if (*p)
+	++p;
+
+    while (*p and *p == ' ')
+	++p;
+
+    auto begin = p;
+    while (*p and *p != ';')
+	++p;
+
+    return { begin, std::size_t(p - begin) };
 }
 
 template<typename Parser>

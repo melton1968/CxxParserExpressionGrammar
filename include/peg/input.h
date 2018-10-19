@@ -37,7 +37,8 @@ struct Input
     
     bool eof() const { return m_loc >= m_end; }
     bool bof() const { return m_loc == m_begin; }
-    
+
+    void skip(natural n = 0) { ++m_loc; }
     void mark(const char *mark) { m_mark = mark; }
     
     Input success(natural n = 0) const
