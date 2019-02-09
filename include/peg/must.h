@@ -14,7 +14,7 @@ struct Must
     template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
-	auto r = P::template match<Actions...>(input, states...);
+	auto r = Control::template match<P, Actions...>(input, states...);
 	if (not r) Control::template raise<P>();
 	if constexpr (sizeof...(Ps) == 0) return r;
 	else return Must<Ps...>::template match<Actions...>(r, states...);
@@ -27,7 +27,7 @@ struct IfMust
     template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
-	auto r = P::template match<Actions...>(input, states...);
+	auto r = Control::template match<P, Actions...>(input, states...);
 	if (not r) return r;
 	if constexpr (sizeof...(Ps) == 0) return r;
 	else return Must<Ps...>::template match<Actions...>(r, states...);

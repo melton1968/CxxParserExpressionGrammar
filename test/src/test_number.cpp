@@ -6,7 +6,7 @@
 
 TEST(Peg, NumberPlusSign)
 {
-    using Parser = peg::Sign;
+    using Parser = peg::num::Sign;
     string str = "+";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -15,7 +15,7 @@ TEST(Peg, NumberPlusSign)
 
 TEST(Peg, NumberMinusSign)
 {
-    using Parser = peg::Sign;
+    using Parser = peg::num::Sign;
     string str = "-";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -24,7 +24,7 @@ TEST(Peg, NumberMinusSign)
 
 TEST(Peg, NumberNoSign)
 {
-    using Parser = peg::Sign;
+    using Parser = peg::num::Sign;
     string str = "0";
     auto r = peg::parse<Parser>(str);
     EXPECT_FALSE(r);
@@ -33,7 +33,7 @@ TEST(Peg, NumberNoSign)
 
 TEST(Peg, NumberInteger)
 {
-    using Parser = peg::Integer;
+    using Parser = peg::num::Integer;
     string str = "0123";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -42,7 +42,7 @@ TEST(Peg, NumberInteger)
 
 TEST(Peg, NumberPlusInteger)
 {
-    using Parser = peg::Integer;
+    using Parser = peg::num::Integer;
     string str = "+123";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -51,7 +51,7 @@ TEST(Peg, NumberPlusInteger)
 
 TEST(Peg, NumberMinusInteger)
 {
-    using Parser = peg::Integer;
+    using Parser = peg::num::Integer;
     string str = "-123";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -60,7 +60,7 @@ TEST(Peg, NumberMinusInteger)
 
 TEST(Peg, NumberDecimal)
 {
-    using Parser = peg::Decimal;
+    using Parser = peg::num::Decimal;
     string str = "-123.456";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -69,7 +69,7 @@ TEST(Peg, NumberDecimal)
 
 TEST(Peg, NumberDecimalNoFraction)
 {
-    using Parser = peg::Decimal;
+    using Parser = peg::num::Decimal;
     string str = "-123.";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -78,7 +78,7 @@ TEST(Peg, NumberDecimalNoFraction)
 
 TEST(Peg, NumberDecimalFractionOnly)
 {
-    using Parser = peg::Decimal;
+    using Parser = peg::num::Decimal;
     string str = "-.123";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -87,7 +87,7 @@ TEST(Peg, NumberDecimalFractionOnly)
 
 TEST(Peg, NumberReal)
 {
-    using Parser = peg::Real;
+    using Parser = peg::num::Real;
     string str = "123.456e3";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);

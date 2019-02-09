@@ -9,10 +9,10 @@
 namespace peg
 {
 
-template<typename P>
+template<class P>
 struct ZeroOrOne
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto r = P::template match<Actions...>(input, states...);
@@ -21,10 +21,10 @@ struct ZeroOrOne
     }
 };
 
-template<typename P>
+template<class P>
 struct ZeroOrMore
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto last_r = input;
@@ -34,10 +34,10 @@ struct ZeroOrMore
     }
 };
 
-template<typename P>
+template<class P>
 struct OneOrMore
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto r = P::template match<Actions...>(input, states...);
@@ -48,10 +48,13 @@ struct OneOrMore
 
 // Convenience Parsers for Repetition
 //
-template<typename P> using Optional = ZeroOrOne<P>;
-template<typename P> using Asterick = ZeroOrMore<P>;
+template<class P> using Optional = ZeroOrOne<P>;
+template<class P> using Asterick = ZeroOrMore<P>;
 
-template<typename Parser, typename Infix, typename Ignore>
+template<class Parser, class Infix, class Ignore>
 using List = Sequence<Parser,ZeroOrMore<Sequence<Ignore,Infix,Parser>>,Optional<Infix>>;
+
+template<class Parser, class Infix, class Ignore>
+using InfixList = Sequence<Parser,ZeroOrMore<Sequence<Ignore,Infix,Parser>>>;
 
 }; // end peg

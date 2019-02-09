@@ -9,6 +9,7 @@
 #include "peg/control.h"
 #include "peg/file.h"
 #include "peg/input.h"
+#include "peg/must.h"
 #include "peg/parse.h"
 #include "peg/quote.h"
 #include "peg/repetition.h"
@@ -34,13 +35,17 @@ using PrintableChar = Range<' ','~'>;
 
 // Numbers
 //
-using Sign = Choice<Plus,Minus>;
+namespace num {
+
+using Sign = Choice<PlusChar,MinusChar>;
 using Integer = Sequence<Optional<Sign>, OneOrMore<Digit>>;
-using DecimalLeft = Sequence<Integer, Period, ZeroOrMore<Digit>>;
-using DecimalRight = Sequence<Optional<Sign>, Period, OneOrMore<Digit>>;
+using DecimalLeft = Sequence<Integer, PeriodChar, ZeroOrMore<Digit>>;
+using DecimalRight = Sequence<Optional<Sign>, PeriodChar, OneOrMore<Digit>>;
 using Decimal = Choice<DecimalLeft, DecimalRight>;
-using Rational = Sequence<Integer, ForwardSlash, Integer>;
+using Rational = Sequence<Integer, ForwardSlashChar, Integer>;
 using Exponent = Choice<Character<'e'>, Character<'E'>>;
 using Real = Sequence<Decimal, Exponent, Integer>;
+
+}; // end ns num
 
 }; // end peg

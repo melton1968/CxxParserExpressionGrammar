@@ -79,50 +79,52 @@ struct String
 
 // Convenience Parsers for Character
 //
-using Space = Character<' '>;
-using Tab = Character<'\t'>;
-using VerticalTab = Character<'\v'>;
-using LineFeed = Character<'\f'>;
-using Return = Character<'\r'>;
-using Newline = Character<'\n'>;
+using SpaceChar = Character<' '>;
+using TabChar = Character<'\t'>;
+using VerticalTabChar = Character<'\v'>;
+using LineFeedChar = Character<'\f'>;
+using ReturnChar = Character<'\r'>;
+using NewlineChar = Character<'\n'>;
 
-using Tilde = Character<'~'>;
-using BackQuote = Character<'`'>;
-using Exclamation = Character<'!'>;
-using AtSign = Character<'@'>;
-using Hash = Character<'#'>;
-using Dollar = Character<'$'>;
-using Percent = Character<'%'>;
-using Caret = Character<'^'>;
-using Amperstand = Character<'&'>;
-using Star = Character<'*'>;
-using OpenParen = Character<'('>;
-using CloseParen = Character<')'>;
-using Underscore = Character<'_'>;
-using Minus = Character<'-'>;
-using Plus = Character<'+'>;
-using Equal = Character<'='>;
+using TildeChar = Character<'~'>;
+using BackQuoteChar = Character<'`'>;
+using ExclamationChar = Character<'!'>;
+using AtSignChar = Character<'@'>;
+using HashChar = Character<'#'>;
+using DollarChar = Character<'$'>;
+using PercentChar = Character<'%'>;
+using CaretChar = Character<'^'>;
+using AmperstandChar = Character<'&'>;
+using StarChar = Character<'*'>;
+using OpenParenChar = Character<'('>;
+using CloseParenChar = Character<')'>;
+using UnderscoreChar = Character<'_'>;
+using MinusChar = Character<'-'>;
+using PlusChar = Character<'+'>;
+using EqualChar = Character<'='>;
 
-using OpenCurly = Character<'{'>;
-using OpenBracket = Character<'['>;
-using CloseCurly = Character<'}'>;
-using CloseBracket = Character<']'>;
-using Pipe = Character<'|'>;
-using Backslash = Character<'\\'>;
+using OpenCurlyChar = Character<'{'>;
+using OpenBracketChar = Character<'['>;
+using CloseCurlyChar = Character<'}'>;
+using CloseBracketChar = Character<']'>;
+using PipeChar = Character<'|'>;
+using BackslashChar = Character<'\\'>;
 
-using Colon = Character<':'>;
-using SemiColon = Character<';'>;
-using DoubleQuote = Character<'"'>;
-using SingleQuote = Character<'\''>;
+using ColonChar = Character<':'>;
+using SemiColonChar = Character<';'>;
+using DoubleQuoteChar = Character<'"'>;
+using SingleQuoteChar = Character<'\''>;
 
-using LessThan = Character<'<'>;
-using Comma = Character<','>;
-using GreaterThan = Character<'>'>;
-using Period = Character<'.'>;
-using QuestionMark = Character<'?'>;
-using ForwardSlash = Character<'/'>;
+using LessThanChar = Character<'<'>;
+using CommaChar = Character<','>;
+using GreaterThanChar = Character<'>'>;
+using PeriodChar = Character<'.'>;
+using DotChar = Character<'.'>;
+using QuestionMarkChar = Character<'?'>;
+using ForwardSlashChar = Character<'/'>;
+using DivideChar = Character<'/'>;
 
-}; // end peg
+}; // end ns peg
 
 #define PEG_MAKE_STRING(s)						\
     struct struct_ ## s { constexpr static const char s[] = #s; };	\
