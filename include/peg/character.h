@@ -1,4 +1,4 @@
-// Copyright (C) 2018 by Mark Melton
+// Copyright (C) 2018, 2019 by Mark Melton
 //
 
 #pragma once
@@ -11,9 +11,7 @@ namespace peg
 template<char C>
 struct Character
 {
-    template<template<typename> typename Control,
-	     template<typename> typename... Actions,
-	     typename... States>
+    template<template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof()) return input.failure();
@@ -25,9 +23,7 @@ struct Character
 template<char C>
 struct NotCharacter
 {
-    template<template<typename> typename Control,
-	     template<typename> typename... Actions,
-	     typename... States>
+    template<template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof()) return input.failure();
@@ -36,28 +32,33 @@ struct NotCharacter
     }
 };
 
+struct AnyCharacter
+{
+    template<template<typename> typename... Actions, typename... States>
+    static Input match(const Input& input, States&... states)
+    {
+	if (input.eof()) return input.failure();
+	else return input.success(1);
+    }
+};
+
 template<char C, char... Cs>
 struct Characters
 {
-    template<template<typename> typename Control,
-	     template<typename> typename... Actions,
-	     typename... States>
+    template<template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof()) return input.failure();
 	else if (input.peek() != C) return input.failure();
 	else if constexpr (sizeof...(Cs) == 0) return input.success(1);
-	else return Characters<Cs...>::template match<Control,Actions...>
-		 (input.success(1), states...);
+	else return Characters<Cs...>::template match<Actions...>(input.success(1), states...);
     }
 };
 
 template<auto& S>
 struct String
 {
-    template<template<typename> typename Control,
-	     template<typename> typename... Actions,
-	     typename... States>
+    template<template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof())
@@ -76,48 +77,53 @@ struct String
     }
 };
 
-template<char Lo, char Hi, char... Cs>
-struct Ranges
-{
-    template<template<typename> typename Control,
-	     template<typename> typename... Actions,
-	     typename... States>
-    static Input match(const Input& input, States&... states)
-    {
-	if (input.eof()) return input.failure();
-	else if (input.peek() >= Lo and input.peek() <= Hi) return input.success(1);
-	
-	if constexpr (sizeof...(Cs) == 0) return input.failure();
-	else return Ranges<Cs...>::template match<Control,Actions...>(input, states...);
-    }
-};
-
-template<char Lo, char Hi>
-using Range = Ranges<Lo,Hi>;
-
 // Convenience Parsers for Character
 //
+using Space = Character<' '>;
+using Tab = Character<'\t'>;
+using VerticalTab = Character<'\v'>;
+using LineFeed = Character<'\f'>;
+using Return = Character<'\r'>;
+using Newline = Character<'\n'>;
+
+using Tilde = Character<'~'>;
+using BackQuote = Character<'`'>;
+using Exclamation = Character<'!'>;
+using AtSign = Character<'@'>;
+using Hash = Character<'#'>;
+using Dollar = Character<'$'>;
+using Percent = Character<'%'>;
+using Caret = Character<'^'>;
+using Amperstand = Character<'&'>;
+using Star = Character<'*'>;
 using OpenParen = Character<'('>;
 using CloseParen = Character<')'>;
-using OpenCurly = Character<'{'>;
-using CloseCurly = Character<'}'>;
 using Underscore = Character<'_'>;
-using Plus = Character<'+'>;
 using Minus = Character<'-'>;
-using Times = Character<'*'>;
-using Divide = Character<'/'>;
-using Comma = Character<','>;
+using Plus = Character<'+'>;
+using Equal = Character<'='>;
+
+using OpenCurly = Character<'{'>;
+using OpenBracket = Character<'['>;
+using CloseCurly = Character<'}'>;
+using CloseBracket = Character<']'>;
+using Pipe = Character<'|'>;
+using Backslash = Character<'\\'>;
+
 using Colon = Character<':'>;
+using SemiColon = Character<';'>;
 using DoubleQuote = Character<'"'>;
 using SingleQuote = Character<'\''>;
 
-// Convenience Parsers for Range(s)
-//
-using LowerCase = Range<'a','z'>;
-using UpperCase = Range<'A','Z'>;
-using Alpha = Ranges<'a','z','A','Z'>;
-using AlphaNum = Ranges<'a','z','A','Z','0','9'>;
-using DecimalDigit = Range<'0','9'>;
-using HexDigit = Ranges<'0','9','a','f','A','F'>;
+using LessThan = Character<'<'>;
+using Comma = Character<','>;
+using GreaterThan = Character<'>'>;
+using Period = Character<'.'>;
+using QuestionMark = Character<'?'>;
+using ForwardSlash = Character<'/'>;
 
 }; // end peg
+
+#define PEG_MAKE_STRING(s)						\
+    struct struct_ ## s { constexpr static const char s[] = #s; };	\
+    using String_ ## s = peg::String<struct_ ## s::s>;

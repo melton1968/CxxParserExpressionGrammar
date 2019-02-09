@@ -1,9 +1,7 @@
 // Copyright (C) 2018, 2019 by Mark Melton
 //
 
-#include <fmt/format.h>
 #include <gtest/gtest.h>
-#include "core/common.h"
 #include "peg/character.h"
 #include "peg/sequence.h"
 #include "peg/parse.h"

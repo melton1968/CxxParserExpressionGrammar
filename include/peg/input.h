@@ -1,16 +1,15 @@
-// Copyright (C) 2018 by Mark Melton
+// Copyright (C) 2018, 2019 by Mark Melton
 //
 
 #pragma once
-
-#include "peg/config.h"
+#include "core/common.h"
 
 namespace peg
 {
 
 struct Input
 {
-    Input(const std::string& str)
+    Input(const string& str)
 	: m_valid(true)
 	, m_begin(str.c_str())
 	, m_end(m_begin + str.size())
@@ -38,10 +37,9 @@ struct Input
     bool eof() const { return m_loc >= m_end; }
     bool bof() const { return m_loc == m_begin; }
 
-    void skip(natural n = 0) { ++m_loc; }
     void mark(const char *mark) { m_mark = mark; }
     
-    Input success(natural n = 0) const
+    Input success(size_t n = 0) const
     {
 	return Input{ true, m_begin, m_end, m_loc + n, m_mark };
     }
@@ -51,11 +49,16 @@ struct Input
 	return Input{ false, m_begin, m_end, m_loc, m_mark };
     }
 
-    std::string match() const
+    Input with_status(bool success) const
+    {
+	return Input{ success, m_begin, m_end, m_loc, m_mark };
+    }
+
+    string match() const
     {
 	if (m_valid)
-	    return std::string(m_mark, m_loc);
-	return std::string();
+	    return string(m_mark, m_loc);
+	return string();
     }
 
 private:

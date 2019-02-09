@@ -1,4 +1,4 @@
-// Copyright (C) 2018 by Mark Melton
+// Copyright (C) 2018, 2019 by Mark Melton
 //
 
 #pragma once
@@ -8,23 +8,17 @@
 namespace peg
 {
 
-template<typename Parser,
-	 template<typename> typename Control = NormalControl,
-	 template<typename> typename... Actions,
-	 typename... States>
+template<typename Parser, template<typename> typename... Actions, typename... States>
 Input parse(const Input& input, States&... states)
 {
-    return Machine<Parser,Control,Actions...>::match(input, states...);
+    return Control::template match<Parser, Actions...>(input, states...);
 }
     
-template<typename Parser,
-	 template<typename> typename Control = NormalControl,
-	 template<typename> typename... Actions,
-	 typename... States>
-Input parse(const std::string& str, States&... states)
+template<typename Parser, template<typename> typename... Actions, typename... States>
+Input parse(const string& str, States&... states)
 {
     Input input{ str };
-    return Machine<Parser,Control,Actions...>::match(input, states...);
+    return Control::template match<Parser, Actions...>(input, states...);
 }
 
 }; // end peg

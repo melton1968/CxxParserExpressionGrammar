@@ -3,13 +3,16 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ./bin)
 
 set(TESTS
-  character_parser
-  control
-  peg_repetition
-  peg_sequence
-  peg_whitespace
-  range_parser
-  tree
+  at
+  block
+  character
+  number
+  quote
+  range
+  repetition
+  sequence
+  until
+  whitespace
   )
 
 foreach(NAME ${TESTS})

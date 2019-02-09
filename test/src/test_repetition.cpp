@@ -2,7 +2,6 @@
 //
 
 #include <gtest/gtest.h>
-#include "core/common.h"
 #include "peg/character.h"
 #include "peg/repetition.h"
 #include "peg/parse.h"

@@ -1,8 +1,8 @@
-// Copyright (C) 2018 by Mark Melton
+// Copyright (C) 2018, 2019 by Mark Melton
 //
 
 #pragma once
-#include "config.h"
+#include "core/common.h"
 
 namespace detail
 {
