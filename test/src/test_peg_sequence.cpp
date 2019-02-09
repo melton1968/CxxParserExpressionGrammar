@@ -1,10 +1,12 @@
-// Copyright (C) 2018 by Mark Melton
+// Copyright (C) 2018, 2019 by Mark Melton
 //
 
+#include <fmt/format.h>
 #include <gtest/gtest.h>
-#include "core/peg/character.h"
-#include "core/peg/sequence.h"
-#include "core/peg/parse.h"
+#include "common.h"
+#include "peg/character.h"
+#include "peg/sequence.h"
+#include "peg/parse.h"
 
 using ::testing::StaticAssertTypeEq;
 

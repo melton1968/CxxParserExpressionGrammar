@@ -1,9 +1,6 @@
 [submodule "extern/googletest"]
 	path = extern/googletest
 	url = git@github.com:google/googletest.git
-[submodule "extern/cxx-core"]
-	path = extern/cxx-core
-	url = git@github.com:melton1968/cxx-core.git
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = git@github.com:fmtlib/fmt.git

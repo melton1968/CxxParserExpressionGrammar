@@ -1,9 +1,10 @@
-// Copyright (C) 2018 by Mark Melton
+// Copyright (C) 2018, 2019 by Mark Melton
 //
 
 #include <gtest/gtest.h>
-#include "core/peg/whitespace.h"
-#include "core/peg/parse.h"
+#include "common.h"
+#include "peg/whitespace.h"
+#include "peg/parse.h"
 
 using ::testing::StaticAssertTypeEq;
 

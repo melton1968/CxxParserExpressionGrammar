@@ -1,8 +1,14 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+project(cxx-peg VERSION 0.1 LANGUAGES CXX)
 
+set(MASTER_PROJECT OFF)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(MASTER_PROJECT ON)
+endif()
+
+add_subdirectory(./extern/fmt)
 add_subdirectory(./extern/googletest)
 add_subdirectory(./extern/cxx-core)
-enable_testing()
 
 include_directories(BEFORE SYSTEM /opt/local/include)
 include_directories(include)
@@ -16,6 +22,8 @@ add_compile_options(-Wall)
 add_compile_options(-std=c++2a)
 add_compile_options(-fconcepts)
 add_compile_options(-O3)
+
+enable_testing()
 
 set(TESTS
   character_parser
