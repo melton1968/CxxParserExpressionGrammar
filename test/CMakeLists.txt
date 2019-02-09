@@ -6,6 +6,7 @@ set(TESTS
   at
   block
   character
+  identifier
   number
   quote
   range

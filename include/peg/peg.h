@@ -24,20 +24,11 @@ namespace peg
 
 // General
 //
-using Alpha = Range<'a','z','A','Z'>;
-using AlphaLower = Range<'a','z'>;
-using AlphaUpper = Range<'A','Z'>;
-using AlphaNum = Range<'a','z','A','Z','0','9'>;
-
 using Digit = Range<'0','9'>;
 using Digits = OneOrMore<Digit>;
 
 using HexDigit = Range<'0','9','a','f','A','F'>;
 using HexDigits = OneOrMore<HexDigit>;
-
-using IdentifierFirst = Range<'a','z','A','Z'>;
-using IdentifierRest = Range<'a','z','A','Z','0','9','_'>;
-using Identifier = Sequence<IdentifierFirst, ZeroOrMore<IdentifierRest>>;
 
 using PrintableChar = Range<' ','~'>;
 
@@ -51,6 +42,5 @@ using Decimal = Choice<DecimalLeft, DecimalRight>;
 using Rational = Sequence<Integer, ForwardSlash, Integer>;
 using Exponent = Choice<Character<'e'>, Character<'E'>>;
 using Real = Sequence<Decimal, Exponent, Integer>;
-
 
 }; // end peg

@@ -2,7 +2,8 @@
 //
 
 #include <gtest/gtest.h>
-#include "peg/peg.h"
+#include "peg/identifier.h"
+#include "peg/until.h"
 #include "peg/parse.h"
 
 TEST(Peg, UntilEof)
