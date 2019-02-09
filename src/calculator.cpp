@@ -41,6 +41,14 @@ public:
 	push(n);
     }
     
+    Integer result() const
+    {
+	assert(depth() == 1);
+	assert(size() == 1);
+	return m_data.top().top();
+    }
+    
+    
     Integer pop() 
     {
 	auto n = m_data.top().top();
@@ -127,16 +135,19 @@ struct Calculator<CloseParenChar>
 int tool_main(int argc, const char *argv[])
 {
     core::POpt opts;
+    opts.add_flag("trace", 't', "Trace computation");
     opts.process(argc, argv);
+
+    auto trace = opts.flag("trace");
 
     for (const auto& expr : opts.extra())
     {
-	Computation c;
+	Computation c{ trace };
 	auto r = parse<Grammar,Calculator>(expr, c);
 	if (not r)
 	    cout << "Failed to parse expression: " << expr << endl;
 	else
-	    cout << expr << " = " << c.pop() << endl;
+	    cout << expr << " = " << c.result() << endl;
     }
 
     return 0;
