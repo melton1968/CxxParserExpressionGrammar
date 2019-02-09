@@ -25,7 +25,8 @@ public:
     using Data = std::stack<IntegerStack>;
     using InfixStack = std::stack<char>;
 
-    Computation()
+    Computation(bool trace = false)
+	: m_trace(trace)
     { open(); };
 
     size_t depth() const { return m_data.size(); }
@@ -52,9 +53,11 @@ public:
 	if (size() > 0)
 	{
 	    auto m = pop();
-	    cout << "reduce: " << m << " " << n << " = ";
+	    if (m_trace)
+		cout << m << " " << m_infix.top() << " " << n << " = ";
 	    n = reduce(m, n);
-	    cout << n << endl;
+	    if (m_trace)
+		cout << n << endl;
 	}
 	m_data.top().push(n);
     }
@@ -79,6 +82,7 @@ public:
     }
 
 private:
+    bool m_trace;
     InfixStack m_infix;
     Data m_data;
 };
