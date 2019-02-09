@@ -31,7 +31,7 @@ add_compile_options(-std=c++2a)
 add_compile_options(-fconcepts)
 add_compile_options(-O3)
 
-include_directories(PUBLIC include)
+include_directories(include)
 
 if(PEG_TEST)
   enable_testing()
