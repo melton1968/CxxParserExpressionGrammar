@@ -2,7 +2,7 @@
 //
 
 #include <gtest/gtest.h>
-#include "common.h"
+#include "core/common.h"
 #include "peg/whitespace.h"
 #include "peg/parse.h"
 

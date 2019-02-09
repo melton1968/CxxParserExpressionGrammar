@@ -3,7 +3,7 @@
 
 #include <fmt/format.h>
 #include <gtest/gtest.h>
-#include "common.h"
+#include "core/common.h"
 #include "peg/character.h"
 #include "peg/sequence.h"
 #include "peg/parse.h"
