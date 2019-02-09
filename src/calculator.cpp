@@ -72,11 +72,17 @@ public:
 
     void push_infix(char c) { m_infix.push(c); }
     
+    char pop_infix()
+    {
+	auto c = m_infix.top();
+	m_infix.pop();
+	return c;
+    }
+    
     Integer reduce(Integer n, Integer m)
     {
 	assert(m_infix.size() >= 1);
-	auto op = m_infix.top();
-	m_infix.pop();
+	auto op = pop_infix();
 	
 	switch (op)
 	{
@@ -85,7 +91,7 @@ public:
 	case '*': return n * m;
 	case '/': return n / m;
 	default:
-	    throw std::runtime_error(fmt::format("Unknown infix operator: %c", op));
+	    throw core::runtime_error("Unknown infix operator: %c", op);
 	}
     }
 
