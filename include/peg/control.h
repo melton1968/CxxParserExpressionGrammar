@@ -33,6 +33,12 @@ struct Control
 	(Actions<Parser>::apply(r, states...) , ...);
 	return r;
     }
+
+    template<class T>
+    static void raise()
+    {
+	throw std::runtime_error("Control::raise");
+    }
 };
 
 

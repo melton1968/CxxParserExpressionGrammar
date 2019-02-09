@@ -7,6 +7,7 @@ set(TESTS
   block
   character
   identifier
+  must
   number
   quote
   range
