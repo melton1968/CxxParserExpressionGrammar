@@ -6,15 +6,23 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(MASTER_PROJECT ON)
 endif()
 
-add_subdirectory(./extern/fmt)
-add_subdirectory(./extern/googletest)
-add_subdirectory(./extern/cxx-core)
+option(PEG_TEST "Generate the tests." ${MASTER_PROJECT})
+option(PEG_FMT "Build fmt subproject." ${MASTER_PROJECT})
+option(PEG_GTEST "Build googletest subproject." ${MASTER_PROJECT})
+option(PEG_CORE "Build core subproject." ${MASTER_PROJECT})
 
-include_directories(BEFORE SYSTEM /opt/local/include)
-include_directories(include)
+if(PEG_FMT)
+  add_subdirectory(./extern/fmt)
+endif()
 
-link_directories(BEFORE /opt/local/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+if(PEG_GTEST)
+  add_subdirectory(./extern/googletest)
+endif()
+
+if(PEG_CORE)
+  add_subdirectory(./extern/cxx-core)
+endif()
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
@@ -23,31 +31,9 @@ add_compile_options(-std=c++2a)
 add_compile_options(-fconcepts)
 add_compile_options(-O3)
 
-enable_testing()
+include_directories(PUBLIC include)
 
-set(TESTS
-  character_parser
-  control
-  peg_repetition
-  peg_sequence
-  peg_whitespace
-  range_parser
-  tree
-  )
-
-foreach(NAME ${TESTS})
-  get_filename_component(DIRNAME ${NAME} DIRECTORY)
-  get_filename_component(BASENAME ${NAME} NAME_WE)
-  string(REPLACE / _ CATNAME ${NAME})
-  
-  set(TEST_NAME test_${CATNAME})
-  set(TEST_FILE ${PROJECT_SOURCE_DIR}/test/src/${DIRNAME}/test_${BASENAME}.cpp)
-  if(EXISTS ${TEST_FILE})
-  else()
-    set(TEST_FILE ${PROJECT_SOURCE_DIR}/test/src/${DIRNAME}/test_${CATNAME}.cpp)    
-  endif()
-  
-  add_executable(${TEST_NAME} ${TEST_FILE})
-  add_test(${TEST_NAME} bin/${TEST_NAME})
-  target_link_libraries(${TEST_NAME} core fmt gtest)
-endforeach(NAME)
+if(PEG_TEST)
+  enable_testing()
+  add_subdirectory(test)
+endif()
