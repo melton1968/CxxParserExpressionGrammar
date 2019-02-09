@@ -6,8 +6,6 @@
 #include "peg/sequence.h"
 #include "peg/parse.h"
 
-using ::testing::StaticAssertTypeEq;
-
 TEST(Peg, SequenceSuccess)
 {
     using P0 = peg::Character<'a'>;

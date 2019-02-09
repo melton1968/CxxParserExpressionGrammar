@@ -5,8 +5,6 @@
 #include "peg/range.h"
 #include "peg/parse.h"
 
-using ::testing::StaticAssertTypeEq;
-
 TEST(Peg, SingleRangeSuccess)
 {
     using Parser = peg::Range<'a','z'>;

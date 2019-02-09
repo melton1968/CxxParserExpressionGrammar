@@ -7,8 +7,6 @@
 #include "peg/block.h"
 #include "peg/parse.h"
 
-using ::testing::StaticAssertTypeEq;
-
 TEST(Peg, BlockFailureStart)
 {
     using P0 = peg::Characters<'/', '*'>;

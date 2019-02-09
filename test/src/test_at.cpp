@@ -6,8 +6,6 @@
 #include "peg/character.h"
 #include "peg/parse.h"
 
-using ::testing::StaticAssertTypeEq;
-
 TEST(Peg, AtFailure)
 {
     using P0 = peg::Character<'b'>;

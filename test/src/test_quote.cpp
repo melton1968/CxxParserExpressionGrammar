@@ -5,8 +5,6 @@
 #include "peg/quote.h"
 #include "peg/parse.h"
 
-using ::testing::StaticAssertTypeEq;
-
 TEST(Peg, QuotedStringNoMatch)
 {
     using Parser = peg::QuotedString<>;

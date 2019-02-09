@@ -5,8 +5,6 @@
 #include "peg/whitespace.h"
 #include "peg/parse.h"
 
-using ::testing::StaticAssertTypeEq;
-
 TEST(Peg, WhiteSpaceSuccess)
 {
     string str = " \t\nabc";

@@ -5,8 +5,6 @@
 #include "peg/character.h"
 #include "peg/parse.h"
 
-using ::testing::StaticAssertTypeEq;
-
 TEST(Peg, CharacterSuccess)
 {
     using Parser = peg::Character<'a'>;

@@ -5,8 +5,6 @@
 #include "peg/peg.h"
 #include "peg/parse.h"
 
-using ::testing::StaticAssertTypeEq;
-
 TEST(Peg, UntilEof)
 {
     using P0 = peg::AlphaLower;
