@@ -23,6 +23,7 @@ if(PEG_CORE)
   add_subdirectory(./extern/cxx-core)
 endif()
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
@@ -30,6 +31,9 @@ add_compile_options(-Wall)
 add_compile_options(-std=c++2a)
 add_compile_options(-fconcepts)
 add_compile_options(-O3)
+
+add_executable(calculator src/calculator.cpp)
+target_link_libraries(calculator core fmt)
 
 include_directories(include)
 

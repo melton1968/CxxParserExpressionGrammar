@@ -8,7 +8,7 @@
 namespace peg
 {
 
-template<class P>
+template<class P, class... Ps>
 struct Must
 {
     template<template<class> class... Actions, class... States>
@@ -16,11 +16,12 @@ struct Must
     {
 	auto r = P::template match<Actions...>(input, states...);
 	if (not r) Control::template raise<P>();
-	return r;
+	if constexpr (sizeof...(Ps) == 0) return r;
+	else return Must<Ps...>::template match<Actions...>(r, states...);
     }
 };
 
-template<class P, class Q>
+template<class P, class... Ps>
 struct IfMust
 {
     template<template<class> class... Actions, class... States>
@@ -28,9 +29,8 @@ struct IfMust
     {
 	auto r = P::template match<Actions...>(input, states...);
 	if (not r) return r;
-	auto s = Q::template match<Actions...>(r, states...);
-	if (not s) Control::template raise<Q>();
-	return s;
+	if constexpr (sizeof...(Ps) == 0) return r;
+	else return Must<Ps...>::template match<Actions...>(r, states...);
     }
 };
 
