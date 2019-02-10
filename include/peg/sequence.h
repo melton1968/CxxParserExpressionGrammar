@@ -8,10 +8,10 @@
 namespace peg
 {
 
-template<typename P, typename... Ps>
+template<class P, class... Ps>
 struct Sequence
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto r = Control::template match<P, Actions...>(input, states...);
@@ -21,10 +21,23 @@ struct Sequence
     }
 };
 
-template<typename P, typename... Ps>
+template<size_t N, class... Ps>
+struct MinSequence
+{
+    template<template<class> class... Actions, class... States>
+    static Input match(const Input& input, States&... states)
+    {
+	auto r = Control::template match<Sequence<Ps...>, Actions...>(input, states...);
+	if (not r) return r;
+	if (r.size() < N) return r.failure();
+	return r;
+    }
+};
+
+template<class P, class... Ps>
 struct Choice
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto r = Control::template match<P, Actions...>(input, states...);
@@ -34,7 +47,7 @@ struct Choice
     }
 };
 
-template<typename... Ps> using And = Sequence<Ps...>;
-template<typename... Ps> using Or = Choice<Ps...>;
+template<class... Ps> using And = Sequence<Ps...>;
+template<class... Ps> using Or = Choice<Ps...>;
 
 }; // end peg

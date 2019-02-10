@@ -61,6 +61,13 @@ struct Input
 	return string();
     }
 
+    size_t size() const
+    {
+	if (m_valid)
+	    return m_loc - m_mark;
+	return 0;
+    }
+
 private:
     bool m_valid;
     const char *m_begin;

@@ -7,11 +7,11 @@
 
 using namespace peg;
 
-struct Number : Sequence<Optional<num::Sign>, Digits> {};
+struct Number : n::Integer {};
 struct Expression;
-struct ParenExpr : IfMust<OpenParenChar, Expression, CloseParenChar> {};
+struct ParenExpr : IfMust<c::OpenParen, Expression, c::CloseParen> {};
 struct Atomic : Choice<Number, ParenExpr> {};
-struct Infix : Choice<PlusChar, MinusChar, StarChar, DivideChar> {};
+struct Infix : Choice<c::Plus, c::Minus, c::Star, c::Divide> {};
 struct Expression : InfixList<Atomic, Infix, WhiteSpace> {};
 struct Grammar : Must<Expression, EndOfLineOrFile> {};
 
@@ -32,7 +32,11 @@ public:
     size_t depth() const { return m_data.size(); }
     size_t size() const { return m_data.top().size(); }
 
-    void open() { m_data.emplace(); }
+    void open()
+    {
+	m_data.emplace();
+    }
+    
     void close()
     {
 	assert(size() == 1);
@@ -124,14 +128,14 @@ struct Calculator<Infix>
 };
 
 template<>
-struct Calculator<OpenParenChar>
+struct Calculator<c::OpenParen>
 {
     static void apply(const Input&, Computation& c)
     { c.open(); }
 };
 
 template<>
-struct Calculator<CloseParenChar>
+struct Calculator<c::CloseParen>
 {
     static void apply(const Input&, Computation& c)
     { c.close(); }

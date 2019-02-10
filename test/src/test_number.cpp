@@ -3,10 +3,12 @@
 
 #include <gtest/gtest.h>
 #include "peg/peg.h"
+#include "core/generator/boolean.h"
+#include "core/generator/string.h"
 
 TEST(Peg, NumberPlusSign)
 {
-    using Parser = peg::num::Sign;
+    using Parser = peg::n::Sign;
     string str = "+";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -15,7 +17,7 @@ TEST(Peg, NumberPlusSign)
 
 TEST(Peg, NumberMinusSign)
 {
-    using Parser = peg::num::Sign;
+    using Parser = peg::n::Sign;
     string str = "-";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -24,7 +26,7 @@ TEST(Peg, NumberMinusSign)
 
 TEST(Peg, NumberNoSign)
 {
-    using Parser = peg::num::Sign;
+    using Parser = peg::n::Sign;
     string str = "0";
     auto r = peg::parse<Parser>(str);
     EXPECT_FALSE(r);
@@ -33,7 +35,7 @@ TEST(Peg, NumberNoSign)
 
 TEST(Peg, NumberInteger)
 {
-    using Parser = peg::num::Integer;
+    using Parser = peg::n::Integer;
     string str = "0123";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -42,7 +44,7 @@ TEST(Peg, NumberInteger)
 
 TEST(Peg, NumberPlusInteger)
 {
-    using Parser = peg::num::Integer;
+    using Parser = peg::n::Integer;
     string str = "+123";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -51,7 +53,7 @@ TEST(Peg, NumberPlusInteger)
 
 TEST(Peg, NumberMinusInteger)
 {
-    using Parser = peg::num::Integer;
+    using Parser = peg::n::Integer;
     string str = "-123";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -60,7 +62,7 @@ TEST(Peg, NumberMinusInteger)
 
 TEST(Peg, NumberDecimal)
 {
-    using Parser = peg::num::Decimal;
+    using Parser = peg::n::Decimal;
     string str = "-123.456";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -69,16 +71,25 @@ TEST(Peg, NumberDecimal)
 
 TEST(Peg, NumberDecimalNoFraction)
 {
-    using Parser = peg::num::Decimal;
+    using Parser = peg::n::Decimal;
     string str = "-123.";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
     EXPECT_EQ(r.match(), "-123.");
 }
 
+TEST(Peg, NumberDecimalNoPoint)
+{
+    using Parser = peg::n::Decimal;
+    string str = "-123";
+    auto r = peg::parse<Parser>(str);
+    EXPECT_TRUE(r);
+    EXPECT_EQ(r.match(), "-123");
+}
+
 TEST(Peg, NumberDecimalFractionOnly)
 {
-    using Parser = peg::num::Decimal;
+    using Parser = peg::n::Decimal;
     string str = "-.123";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
@@ -87,7 +98,7 @@ TEST(Peg, NumberDecimalFractionOnly)
 
 TEST(Peg, NumberReal)
 {
-    using Parser = peg::num::Real;
+    using Parser = peg::n::Real;
     string str = "123.456e3";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);

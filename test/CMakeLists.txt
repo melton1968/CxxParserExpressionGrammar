@@ -9,6 +9,7 @@ set(TESTS
   identifier
   must
   number
+  number_generative
   quote
   range
   repetition

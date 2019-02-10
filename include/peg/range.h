@@ -22,4 +22,10 @@ struct Range
     }
 };
 
+namespace r {
+
+using Printable = Range<' ','~'>;
+
+};
+
 }; // end peg
