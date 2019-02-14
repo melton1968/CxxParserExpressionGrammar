@@ -3,8 +3,6 @@
 
 #include <gtest/gtest.h>
 #include "peg/peg.h"
-#include "core/generator/boolean.h"
-#include "core/generator/string.h"
 
 TEST(Peg, NumberPlusSign)
 {
