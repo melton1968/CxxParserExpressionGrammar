@@ -14,7 +14,7 @@ struct DebugAction
     using Type = DebugAction<Parser>;
     static void apply(const Input& input)
     {
-	auto view = core::get_name<Type>();
+	auto view = core::type_name<Type>();
 	cout << string(view) << ": ";
 	cout << input.match() << endl;
     }

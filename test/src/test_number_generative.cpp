@@ -4,9 +4,9 @@
 #include <gtest/gtest.h>
 #include "peg/peg.h"
 #include "ranges/view/container.h"
-#include "ranges/view/in_range.h"
 #include "ranges/view/string.h"
 #include "ranges/view/take.h"
+#include "ranges/view/uniform.h"
 #include "ranges/view/zip.h"
 
 TEST(Peg, NumberGenerative)
@@ -16,9 +16,9 @@ TEST(Peg, NumberGenerative)
     strings exps{ "", "", "", "", "", "", "e", "e+", "e-", "E", "E+", "E-" };
     
     auto gsign = v::element_of(signs);
-    auto gleft = v::str::decimal_digits(v::in_index(4));
+    auto gleft = v::str::decimal_digits(v::uniform_index(4));
     auto gdp = v::element_of(dps);
-    auto gright = v::str::decimal_digits(v::in_index(4));
+    auto gright = v::str::decimal_digits(v::uniform_index(4));
     auto gnum = v::zip(gsign, gleft, gdp, gright);
 
     for (auto [s, l, d, r] : gnum | v::take(10))
