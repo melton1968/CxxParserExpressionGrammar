@@ -3,81 +3,60 @@
 
 #include <gtest/gtest.h>
 #include "peg/peg.h"
-#include "ranges/view/string.h"
-#include "ranges/view/take.h"
-#include "ranges/view/uniform.h"
-#include "ranges/view/zip.h"
+#include "ranges/view.h"
 
-TEST(Peg, NumberGenerative)
+static constexpr size_t NumberSamples = 20;
+
+TEST(Peg, GenerativeIntegers)
 {
-    strings signs{ "", "+", "-" };
-    strings dps{ "", "", "." };
-    strings exps{ "", "", "", "", "", "", "e", "e+", "e-", "E", "E+", "E-" };
-    
-    auto gsign = v::uniform(signs);
-    auto gleft = v::str::decimal_digits(v::uniform_index(4));
-    auto gdp = v::uniform(dps);
-    auto gright = v::str::decimal_digits(v::uniform_index(4));
-    auto gnum = v::zip(gsign, gleft, gdp, gright);
-
-    for (auto [s, l, d, r] : gnum | v::take(10))
-	cout << s << l << d << r << endl;
-    
-    // auto ge = v::element_of(exps);
-    
-    // auto gl = gen::decimal(0u, 4u);
-    // auto gdp = gen::elementOf(dps);
-    // auto gr = gen::decimal(0u, 4u);
-    // auto ge= gen::elementOf(exps);
-    // auto gn = gen::decimal(1u, 2u);
-    // auto gexp = gen::map(gen::tuple(ge, gn), [=](const auto& tup)
-    // 					     {
-    // 						 auto [e, n] = tup;
-    // 						 return e.size() > 0 ? e + n : "";
-    // 					     });
-    // auto g = gen::cat(gsign, gl, gdp, gr, gexp);
-
-    // size_t nint{0}, ndec{0}, nfp{0};
-    // const size_t NumberSamples = 10000;
-    // for (index_t i = 0; i < NumberSamples; ++i)
-    // {
-    // 	auto str = g();
-
-    // 	auto exp_iter = str.find_first_of("eE");
-    // 	auto digit_iter = str.find_first_of("0123456789");
+    auto gints = v::arbitrary<int>()
+	| v::str::convert()
+	| v::take(NumberSamples);
+    for (auto str : gints)
+    {
+	auto ri = peg::parse<peg::n::Integer>(str);
+	EXPECT_TRUE(ri);
+	EXPECT_EQ(ri.match(), str);
 	
-    // 	auto has_digits = digit_iter != str.npos and digit_iter < exp_iter;
-    // 	auto has_exp = exp_iter != str.npos;
-    // 	auto has_dp = str.find_first_of(".") != str.npos;
+	auto rd = peg::parse<peg::n::Decimal>(str);
+	EXPECT_TRUE(rd);
+	EXPECT_EQ(rd.match(), str);
 
-    // 	if (not has_digits)
-    // 	    continue;
-	
-    // 	if (not has_dp and not has_exp)
-    // 	{
-    // 	    auto r = peg::parse<peg::n::Integer>(str);
-    // 	    EXPECT_TRUE(r);
-    // 	    EXPECT_EQ(r.match(), str);
-    // 	    ++nint;
-    // 	}
+	auto rr = peg::parse<peg::n::Real>(str);
+	EXPECT_TRUE(rr);
+	EXPECT_EQ(rr.match(), str);
+    }
+}
 
-    // 	if (not has_exp)
-    // 	{
-    // 	    auto r = peg::parse<peg::n::Decimal>(str);
-    // 	    EXPECT_TRUE(r);
-    // 	    EXPECT_EQ(r.match(), str);
-    // 	    ++ndec;
-    // 	}
+TEST(Peg, GenerativeDecimals)
+{
+    auto gints = v::uniform<real>(-1e3, 1e3)
+	| v::str::convert("{:f}")
+	| v::take(NumberSamples);
+    for (auto str : gints)
+    {
+	cout << str << endl;
+	auto rd = peg::parse<peg::n::Decimal>(str);
+	EXPECT_TRUE(rd);
+	EXPECT_EQ(rd.match(), str);
 
-    // 	auto r = peg::parse<peg::n::Real>(str);
-    // 	EXPECT_TRUE(r);
-    // 	EXPECT_EQ(r.match(), str);
-    // 	++nfp;
-    // }
+	auto rr = peg::parse<peg::n::Real>(str);
+	EXPECT_TRUE(rr);
+	EXPECT_EQ(rr.match(), str);
+    }
+}
 
-    // EXPECT_GE(nint, 0.2 * NumberSamples);
-    // EXPECT_GE(ndec, 0.3 * NumberSamples);
-    // EXPECT_GE(nfp, 0.8 * NumberSamples);
+TEST(Peg, GenerativeReals)
+{
+    auto generator = v::arbitrary<real>()
+	| v::str::convert()
+	| v::take(NumberSamples);
+    for (auto str : generator)
+    {
+	auto r = peg::parse<peg::n::Real>(str);
+	EXPECT_TRUE(r);
+	EXPECT_EQ(r.match(), str);
+    }
 }
 
 int main(int argc, char *argv[])
