@@ -61,6 +61,20 @@ struct Input
 	return string();
     }
 
+    size_t match_size() const
+    {
+	if (m_valid)
+	    return m_loc - m_mark;
+	return 0;
+    }
+    
+    string_view match_view() const
+    {
+	if (m_valid)
+	    return string_view{ m_mark, match_size() };
+	return {};
+    }
+
     size_t size() const
     {
 	if (m_valid)

@@ -35,9 +35,16 @@ add_compile_options(-O3)
 add_executable(calculator src/calculator.cpp)
 target_link_libraries(calculator core fmt)
 
-include_directories(include)
+set(TOOLS
+  t0)
+
+foreach(NAME ${TOOLS})
+  add_executable(${NAME} src/tools/${NAME}.cpp)
+  target_link_libraries(${NAME} core stl2 fmt)
+endforeach()
 
 if(PEG_TEST)
+  include_directories(include)
   enable_testing()
   add_subdirectory(test)
 endif()
