@@ -3,41 +3,15 @@
 
 #include <fmt/format.h>
 #include <stack>
-#include "core/common.h"
+#include "core/tool.h"
 #include "core/demangle.h"
 #include "peg/peg.h"
 
 using namespace peg;
 
-string name;
-
-template<class P, size_t ID>
-struct MatchPush
+struct Environment
 {
-    template<template<class> class... Actions, class... States>
-    static Input match(const Input& input, States&... states)
-    { return Control::template match<P, Actions...>(input, states...); }
-};
-
-template<class P, size_t ID>
-struct MatchPop
-{
-    template<template<class> class... Actions, class... States>
-    static Input match(const Input& input, States&... states)
-    { return Control::template match<P, Actions...>(input, states...); }
-};
-
-struct Name : OneOrMore<Range<'a','z'>> {};
-struct StartTag : Sequence<c::LessThan, MatchPush<Name,5>, c::GreaterThan> {};
-struct EndTag : Sequence<c::LessThan, c::ForwardSlash, MatchPop<Name,5>, c::GreaterThan> {};
-
-struct Content;
-struct Element : Sequence<StartTag, Content, EndTag> {};
-struct Content : Choice<Element, OneOrMore<Range<'a','z'>>> {};
-
-struct State
-{
-    State()
+    Environment()
 	: env(10)
     { }
 
@@ -58,36 +32,57 @@ struct State
     vector<std::stack<string_view>> env;
 };
 
-template<class Rule>
-struct Env : NullAction {};
-
-template<>
-struct Env<MatchPush<Name,5>>
+template<class P, size_t ID>
+struct MatchPush
 {
-    static void apply(const Input& input, State& state)
+    template<template<class> class... Actions, class... States>
+    static Input match(const Input& input, Environment& env, States&... states)
     {
-	cout << "push: " << input.match() << endl;
-	state.template push<5>(input.match_view());
+	auto r = Control::template match<P, Actions...>(input, env, states...);
+	if (not r) return r;
+
+	env.template push<ID>(r.match_view());
+	return r;
     }
 };
 
-template<>
-struct Env<MatchPop<Name,5>>
+template<class P, size_t ID>
+struct MatchPop
 {
-    static void apply(const Input& input, State& state)
+    template<template<class> class... Actions, class... States>
+    static Input match(const Input& input, Environment& env, States&... states)
     {
-	auto match = state.template top<5>();
-	cout << match << " " << input.match() << endl;
+	auto r = Control::template match<P, Actions...>(input, env, states...);
+	if (not r) return r;
+
+	auto str = env.template top<ID>();
+	if (str != r.match_view())
+	    return input.failure();
+	env.template pop<ID>();
+	return r;
     }
 };
 
-int main(int argc, const char *argv[])
+struct Name : OneOrMore<Range<'a','z'>> {};
+struct StartTag : Sequence<c::LessThan, MatchPush<Name,5>, c::GreaterThan> {};
+struct EndTag : Sequence<c::LessThan, c::ForwardSlash, MatchPop<Name,5>, c::GreaterThan> {};
+
+struct Content;
+struct Element : Sequence<StartTag, Content, EndTag> {};
+struct Content : Choice<Element, OneOrMore<Range<'a','z'>>> {};
+
+int tool_main(int argc, const char *argv[])
 {
+    core::POpt opts;
+    opts.process(argc, argv);
     cout << std::boolalpha;
-    auto input = "<abc>hello</abc>"s;
-    auto state = State{};
-    auto r = parse<Content, Env>(input, state);
-    cout << (bool)r << " " << r.match() << endl;
+
+    for (auto input : opts.extra())
+    {
+	auto state = Environment{};
+	auto r = parse<Content, DebugAction>(input, state);
+	cout << input << ": " << (bool)r << " " << r.match() << endl;
+    }
     return 0;
 }
 

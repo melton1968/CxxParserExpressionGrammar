@@ -12,7 +12,8 @@ template<typename Parser>
 struct DebugAction
 {
     using Type = DebugAction<Parser>;
-    static void apply(const Input& input)
+    template<class... States>
+    static void apply(const Input& input, States&...)
     {
 	auto view = core::type_name<Type>();
 	cout << string(view) << ": ";
