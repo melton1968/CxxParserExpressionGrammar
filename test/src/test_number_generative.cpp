@@ -5,11 +5,11 @@
 #include "peg/peg.h"
 #include "ranges/view.h"
 
-static constexpr size_t NumberSamples = 20;
+static constexpr size_t NumberSamples = 1'000;
 
 TEST(Peg, GenerativeIntegers)
 {
-    auto gints = v::arbitrary<int>()
+    auto gints = v::loguniform<int>()
 	| v::str::convert()
 	| v::take(NumberSamples);
     for (auto str : gints)
@@ -30,12 +30,11 @@ TEST(Peg, GenerativeIntegers)
 
 TEST(Peg, GenerativeDecimals)
 {
-    auto gints = v::uniform<real>(-1e3, 1e3)
+    auto gints = v::loguniform<real>()
 	| v::str::convert("{:f}")
 	| v::take(NumberSamples);
     for (auto str : gints)
     {
-	cout << str << endl;
 	auto rd = peg::parse<peg::n::Decimal>(str);
 	EXPECT_TRUE(rd);
 	EXPECT_EQ(rd.match(), str);
@@ -48,8 +47,8 @@ TEST(Peg, GenerativeDecimals)
 
 TEST(Peg, GenerativeReals)
 {
-    auto generator = v::arbitrary<real>()
-	| v::str::convert()
+    auto generator = v::loguniform<real>()
+	| v::str::convert("{:e}")
 	| v::take(NumberSamples);
     for (auto str : generator)
     {
