@@ -8,7 +8,7 @@
 namespace peg
 {
 
-template<typename P, typename Q>
+template<typename P, typename Q, bool ConsumeP = true>
 struct Until
 {
     template<template<typename> typename... Actions, typename... States>
@@ -18,7 +18,13 @@ struct Until
 	while (true)
 	{
 	    auto r = Control::template match<P, Actions...>(in, states...);
-	    if (r) return r;
+	    if (r)
+	    {
+		if constexpr (ConsumeP)
+				 return r;
+		else
+		    return in;
+	    }
 
 	    auto s = Control::template match<Q, Actions...>(in, states...);
 	    if (not s) return s;

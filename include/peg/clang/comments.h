@@ -4,12 +4,12 @@
 #pragma once
 #include "peg/peg.h"
 
-namespace peg
+namespace peg::clang
 {
 
 // 6.4.9 Comments
 //
-struct LineComment : Seq<String<'/','/'>, Until<c::Newline, AnyCharacter>> {};
+struct LineComment : Seq<String<'/','/'>, Until<c::Newline, AnyCharacter, false>> {};
 struct PairedComment : Seq<String<'/','*'>, Until<String<'*','/'>, AnyCharacter>> {};
 struct Comment : Or<LineComment, PairedComment> {};
 
