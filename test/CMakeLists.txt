@@ -6,6 +6,7 @@ set(TESTS
   at
   block
   character
+  clang/comment
   clang/floating_constant
   identifier
   must

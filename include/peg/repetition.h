@@ -9,72 +9,42 @@
 namespace peg
 {
 
-template<class P, class... Ps>
-struct ZeroOrOne
+template<size_t N, size_t M, class... Ps>
+struct Repetition
 {
     template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
-    { return ZeroOrOne<Sequence<P, Ps...>>::template match<Actions...>(input, states...); }
+    { return Repetition<N, M, Sequence<Ps...>>::template match<Actions...>(input, states...); }
 };
 
-template<class P>
-struct ZeroOrOne<P>
+template<size_t N, size_t M, class P>
+struct Repetition<N, M, P>
 {
     template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
-	auto r = P::template match<Actions...>(input, states...);
-	if (r) return r;
-	return input;
-    }
-};
-
-template<class P, class... Ps>
-struct ZeroOrMore
-{
-    template<template<class> class... Actions, class... States>
-    static Input match(const Input& input, States&... states)
-    { return ZeroOrMore<Sequence<P, Ps...>>::template match<Actions...>(input, states...); }
-};
-	    
-template<class P>
-struct ZeroOrMore<P>
-{
-    template<template<class> class... Actions, class... States>
-    static Input match(const Input& input, States&... states)
-    {
+	size_t count = 0;
 	auto last_r = input;
-	while (auto r = P::template match<Actions...>(last_r, states...))
+	Input r = input;
+	while (count < M and (r = P::template match<Actions...>(last_r, states...)))
+	{
+	    ++count;
 	    last_r = r;
-	return last_r;
+	}
+	if (count >= N)
+	    return last_r;
+	else
+	    return input.failure();
     }
 };
 
-template<class P, class... Ps>
-struct OneOrMore
-{
-    template<template<class> class... Actions, class... States>
-    static Input match(const Input& input, States&... states)
-    { return OneOrMore<Sequence<P, Ps...>>::template match<Actions...>(input, states...); }
-};
+template<class... Ps> using ZeroOrOne = Repetition<0, 1, Ps...>;
+template<class... Ps> using Maybe = Repetition<0, 1, Ps...>;
+template<class... Ps> using ZeroOrMore = Repetition<0, std::numeric_limits<size_t>::max(), Ps...>;
+template<class... Ps> using OneOrMore = Repetition<1, std::numeric_limits<size_t>::max(), Ps...>;
 
-template<class P>
-struct OneOrMore<P>
-{
-    template<template<class> class... Actions, class... States>
-    static Input match(const Input& input, States&... states)
-    {
-	auto r = P::template match<Actions...>(input, states...);
-	if (not r) return r.failure();
-	return ZeroOrMore<P>::template match<Actions...>(r, states...);
-    }
-};
-
-// Convenience Parsers for Repetition
-//
-template<class... Ps> using Optional = ZeroOrOne<Ps...>;
-template<class... Ps> using Maybe = ZeroOrOne<Ps...>;
-template<class... Ps> using Asterick = ZeroOrMore<Ps...>;
+template<size_t N, class... Ps>
+using AtLeast = Repetition<N, std::numeric_limits<size_t>::max(), Ps...>;
 
 template<class Parser, class Infix, class Ignore>
 using List = Sequence<Parser,ZeroOrMore<Ignore,Infix,Parser>,Maybe<Infix>>;

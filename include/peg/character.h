@@ -130,6 +130,7 @@ using Dollar = Character<'$'>;
 using Percent = Character<'%'>;
 using Caret = Character<'^'>;
 using Amperstand = Character<'&'>;
+using BitAnd = Character<'&'>;
 using Star = Character<'*'>;
 using Multiply  = Character<'*'>;
 using OpenParen = Character<'('>;
@@ -144,6 +145,7 @@ using OpenBracket = Character<'['>;
 using CloseCurly = Character<'}'>;
 using CloseBracket = Character<']'>;
 using Pipe = Character<'|'>;
+using BitOr = Character<'|'>;
 using Backslash = Character<'\\'>;
 
 using Colon = Character<':'>;
@@ -165,6 +167,41 @@ using Divide = Character<'/'>;
 
 namespace s
 {
+
+using RightArrow = String<'-','>'>;
+using PlusPlus = String<'+','+'>;
+using MinusMinus = String<'-','-'>;
+using ShiftLeft = String<'<', '<'>;
+using ShiftRight = String<'<', '<'>;
+
+using LogicalAnd = String<'&', '&'>;
+using LogicalOr = String<'|', '|'>;
+
+using EqualEqual = String<'=', '='>;
+using NotEqual = String<'!', '='>;
+using LessEqual = String<'<', '='>;
+using GreaterEqual = String<'>', '='>;
+
+using Elipsis = String<'.', '.', '.'>;
+using MultiplyEqual = String<'*', '='>;
+using DivideEqual = String<'/', '='>;
+using PercentEqual = String<'%', '='>;
+using PlusEqual = String<'+', '='>;
+using MinusEqual = String<'-', '='>;
+using LeftShiftEqual = String<'<', '<', '='>;
+using RightShiftEqual = String<'>', '>', '='>;
+using BitAndEqual = String<'&', '='>;
+using BitOrEqual = String<'|', '='>;
+using DoubleHash = String<'#', '#'>;
+
+using OpenBracketSpecial = String<'<', ':'>;
+using CloseBracketSpecial = String<':', '>'>;
+
+using OpenCurlySpecial = String<'<', '%'>;
+using CloseCurlySpecial = String<'%', '>'>;
+
+using HashSpecial = String<'%', ':'>;
+using DoubleHashSpecial = String<'%', ':', '%', ':'>;
 
 using _ll = StringCaseless<'l','l'>;
 
