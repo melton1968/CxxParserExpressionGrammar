@@ -9,9 +9,9 @@
 
 TEST(Peg, BlockFailureStart)
 {
-    using P0 = peg::Characters<'/', '*'>;
+    using P0 = peg::String<'/', '*'>;
     using P1 = peg::AnyCharacter;
-    using P2 = peg::Characters<'*', '/'>;
+    using P2 = peg::String<'*', '/'>;
     using Parser = peg::Block<P0, P1, P2>;
     string str = "abc ABC */";
     auto r = peg::parse<Parser>(str);
@@ -21,9 +21,9 @@ TEST(Peg, BlockFailureStart)
 
 TEST(Peg, BlockFailureStart2)
 {
-    using P0 = peg::Characters<'/', '*'>;
+    using P0 = peg::String<'/', '*'>;
     using P1 = peg::AnyCharacter;
-    using P2 = peg::Characters<'*', '/'>;
+    using P2 = peg::String<'*', '/'>;
     using Parser = peg::Block<P0, P1, P2>;
     string str = "/ *abc ABC */";
     auto r = peg::parse<Parser>(str);
@@ -33,9 +33,9 @@ TEST(Peg, BlockFailureStart2)
 
 TEST(Peg, BlockFailureEnd)
 {
-    using P0 = peg::Characters<'/', '*'>;
+    using P0 = peg::String<'/', '*'>;
     using P1 = peg::AnyCharacter;
-    using P2 = peg::Characters<'*', '/'>;
+    using P2 = peg::String<'*', '/'>;
     using Parser = peg::Block<P0, P1, P2>;
     string str = "/* abc ABC * /";
     auto r = peg::parse<Parser>(str);
@@ -45,9 +45,9 @@ TEST(Peg, BlockFailureEnd)
 
 TEST(Peg, BlockEndOfFile)
 {
-    using P0 = peg::Characters<'/', '*'>;
+    using P0 = peg::String<'/', '*'>;
     using P1 = peg::AnyCharacter;
-    using P2 = peg::Characters<'*', '/'>;
+    using P2 = peg::String<'*', '/'>;
     using Parser = peg::Block<P0, P1, P2>;
     string str = "";
     auto r = peg::parse<Parser>(str);
@@ -57,9 +57,9 @@ TEST(Peg, BlockEndOfFile)
 
 TEST(Peg, BlockSuccess)
 {
-    using P0 = peg::Characters<'/', '*'>;
+    using P0 = peg::String<'/', '*'>;
     using P1 = peg::AnyCharacter;
-    using P2 = peg::Characters<'*', '/'>;
+    using P2 = peg::String<'*', '/'>;
     using Parser = peg::Block<P0, P1, P2>;
     string str = "/* abc \n DEF */ 123";
     auto r = peg::parse<Parser>(str);

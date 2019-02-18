@@ -43,37 +43,35 @@ TEST(Peg, NotCharacterFailure)
 
 TEST(Peg, CharactersSuccess)
 {
-    using Parser = peg::Characters<'a','b'>;
+    using Parser = peg::Characters<'a','A'>;
+    string str = "A";
+    auto r = peg::parse<Parser>(str);
+    EXPECT_TRUE(r);
+    EXPECT_EQ(r.match(), "A");
+}
+
+TEST(Peg, CharactersFailure)
+{
+    using Parser = peg::Characters<'a','A'>;
+    string str = "ba";
+    auto r = peg::parse<Parser>(str);
+    EXPECT_FALSE(r);
+    EXPECT_EQ(r.match(), "");
+}
+
+TEST(Peg, StringSuccess)
+{
+    using Parser = peg::String<'a','b'>;
     string str = "ab";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
     EXPECT_EQ(r.match(), "ab");
 }
 
-TEST(Peg, CharactersFailure)
-{
-    using Parser = peg::Characters<'a','b'>;
-    string str = "ac";
-    auto r = peg::parse<Parser>(str);
-    EXPECT_FALSE(r);
-    EXPECT_EQ(r.match(), "");
-}
-
-struct tmp { constexpr static const char s[] = "abcdef"; };
-    
-TEST(Peg, StringSuccess)
-{
-    using Parser = peg::String<tmp::s>;
-    string str = "abcdef";
-    auto r = peg::parse<Parser>(str);
-    EXPECT_TRUE(r);
-    EXPECT_EQ(r.match(), "abcdef");
-}
-
 TEST(Peg, StringFailure)
 {
-    using Parser = peg::String<tmp::s>;
-    string str = "abCdef";
+    using Parser = peg::String<'a','b'>;
+    string str = "ac";
     auto r = peg::parse<Parser>(str);
     EXPECT_FALSE(r);
     EXPECT_EQ(r.match(), "");

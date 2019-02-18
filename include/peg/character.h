@@ -49,33 +49,25 @@ struct Characters
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof()) return input.failure();
+	else if (input.peek() == C) return input.success(1);
+	else if constexpr (sizeof...(Cs) == 0) return input.failure();
+	else return Characters<Cs...>::template match<Actions...>(input, states...);
+    }
+};
+
+template<char C, char... Cs>
+struct String
+{
+    template<template<typename> typename... Actions, typename... States>
+    static Input match(const Input& input, States&... states)
+    {
+	if (input.eof()) return input.failure();
 	else if (input.peek() != C) return input.failure();
 	else if constexpr (sizeof...(Cs) == 0) return input.success(1);
 	else return Characters<Cs...>::template match<Actions...>(input.success(1), states...);
     }
 };
 
-template<auto& S>
-struct String
-{
-    template<template<typename> typename... Actions, typename... States>
-    static Input match(const Input& input, States&... states)
-    {
-	if (input.eof())
-	    return input.failure();
-	
-	const char *a = S;
-	const char *b = input.loc();
-	while (b < input.end() and *a and *a == *b)
-	{
-	    ++a;
-	    ++b;
-	}
-	if (*a != '\0')
-	    return input.failure();
-	return input.success(strlen(S));
-    }
-};
 
 // Convenience Parsers for Character
 //
