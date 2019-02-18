@@ -7,17 +7,35 @@
 
 TEST(Peg, CharacterSuccess)
 {
-    using Parser = peg::Character<'a'>;
-    string str = "a";
+    using Parser = peg::Character<'a','b'>;
+    string str = "b";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
-    EXPECT_EQ(r.match(), "a");
+    EXPECT_EQ(r.match(), "b");
 }
 
 TEST(Peg, CharacterFailure)
 {
-    using Parser = peg::Character<'a'>;
-    string str = "b";
+    using Parser = peg::Character<'a','b'>;
+    string str = "c";
+    auto r = peg::parse<Parser>(str);
+    EXPECT_FALSE(r);
+    EXPECT_EQ(r.match(), "");
+}
+
+TEST(Peg, CharacterCaselessSuccess)
+{
+    using Parser = peg::CharacterCaseless<'a','b'>;
+    string str = "B";
+    auto r = peg::parse<Parser>(str);
+    EXPECT_TRUE(r);
+    EXPECT_EQ(r.match(), "B");
+}
+
+TEST(Peg, CharacterCaselessFailure)
+{
+    using Parser = peg::CharacterCaseless<'a','b'>;
+    string str = "C";
     auto r = peg::parse<Parser>(str);
     EXPECT_FALSE(r);
     EXPECT_EQ(r.match(), "");
@@ -25,38 +43,29 @@ TEST(Peg, CharacterFailure)
 
 TEST(Peg, NotCharacterSuccess)
 {
-    using Parser = peg::NotCharacter<'a'>;
-    string str = "b";
+    using Parser = peg::NotCharacter<'a','b'>;
+    string str = "c";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
-    EXPECT_EQ(r.match(), "b");
+    EXPECT_EQ(r.match(), "c");
 }
 
 TEST(Peg, NotCharacterFailure)
 {
-    using Parser = peg::NotCharacter<'a'>;
-    string str = "a";
+    using Parser = peg::NotCharacter<'a','b'>;
+    string str = "b";
     auto r = peg::parse<Parser>(str);
     EXPECT_FALSE(r);
     EXPECT_EQ(r.match(), "");
 }
 
-TEST(Peg, CharactersSuccess)
+TEST(Peg, AnyCharacterSuccess)
 {
-    using Parser = peg::Characters<'a','A'>;
-    string str = "A";
+    using Parser = peg::AnyCharacter;
+    string str = "b";
     auto r = peg::parse<Parser>(str);
     EXPECT_TRUE(r);
-    EXPECT_EQ(r.match(), "A");
-}
-
-TEST(Peg, CharactersFailure)
-{
-    using Parser = peg::Characters<'a','A'>;
-    string str = "ba";
-    auto r = peg::parse<Parser>(str);
-    EXPECT_FALSE(r);
-    EXPECT_EQ(r.match(), "");
+    EXPECT_EQ(r.match(), "b");
 }
 
 TEST(Peg, StringSuccess)
@@ -71,6 +80,24 @@ TEST(Peg, StringSuccess)
 TEST(Peg, StringFailure)
 {
     using Parser = peg::String<'a','b'>;
+    string str = "ac";
+    auto r = peg::parse<Parser>(str);
+    EXPECT_FALSE(r);
+    EXPECT_EQ(r.match(), "");
+}
+
+TEST(Peg, StringCaselessSuccess)
+{
+    using Parser = peg::StringCaseless<'a','b'>;
+    string str = "aB";
+    auto r = peg::parse<Parser>(str);
+    EXPECT_TRUE(r);
+    EXPECT_EQ(r.match(), "aB");
+}
+
+TEST(Peg, StringCaselessFailure)
+{
+    using Parser = peg::StringCaseless<'a','b'>;
     string str = "ac";
     auto r = peg::parse<Parser>(str);
     EXPECT_FALSE(r);

@@ -8,107 +8,84 @@
 namespace peg
 {
 
-template<char C>
-struct Character
+namespace _
 {
-    template<template<typename> typename... Actions, typename... States>
+struct Identity { Input operator()(const Input& input) const { return input; } };
+struct Success { Input operator()(const Input& input) const { return input.success(1); } };
+struct Failure { Input operator()(const Input& input) const { return input.failure(); } };
+
+template<class Compare>
+struct NormalAction
+{
+    bool compare(char a, char b) const { return Compare{}(a, b); }
+    Input success(const Input& input) const { return input.success(1); }
+    Input failure(const Input& input) const { return input.failure(); }
+};
+
+template<class Compare>
+struct InverseAction
+{
+    bool compare(char a, char b) const { return Compare{}(a, b); }
+    Input success(const Input& input) const { return input.failure(); }
+    Input failure(const Input& input) const { return input.success(1); }
+};
+
+struct AlwaysTrue { bool operator()(char, char) const { return true; } };
+struct AlwaysFalse { bool operator()(char, char) const { return false; } };
+
+struct EqualTo
+{ bool operator()(char a, char b) const { return a == b; } };
+
+struct NotEqualTo
+{ bool operator()(char a, char b) const { return a != b; } };
+
+struct EqualToCaseless
+{ bool operator()(char a, char b) const { return std::tolower(a) == std::tolower(b); } };
+
+struct NotEqualToCaseless
+{ bool operator()(char a, char b) const { return std::tolower(a) != std::tolower(b); } };
+
+template<class Match, class Next, char C, char... Cs>
+struct CharMatcher
+{
+    template<template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof()) return input.failure();
-	else if (input.peek() == C) return input.success(1);
-	else return input.failure();
+	else if (Match{}.compare(input.peek(), C)) return Match{}.success(input);
+	else if constexpr (sizeof...(Cs) == 0) return Match{}.failure(input.failure());
+	else return CharMatcher<Match, Next, Cs...>::template
+		 match<Actions...>(Next{}(input), states...);
     }
 };
 
-template<char C>
-struct CharacterLower
-{
-    static_assert(C >= 'a' and C <= 'z');
-    template<template<typename> typename... Actions, typename... States>
-    static Input match(const Input& input, States&... states)
-    {
-	if (input.eof()) return input.failure();
-	else if (std::tolower(input.peek()) == C) return input.success(1);
-	else return input.failure();
-    }
-};
+template<class Match, char C, char... Cs>
+using CharMatcherSet = CharMatcher<Match, _::Identity, C, Cs...>;
 
-template<char C>
-struct NotCharacter
-{
-    template<template<typename> typename... Actions, typename... States>
-    static Input match(const Input& input, States&... states)
-    {
-	if (input.eof()) return input.failure();
-	else if (input.peek() != C) return input.success(1);
-	else return input.failure();
-    }
-};
+template<class Match, char C, char... Cs>
+using CharMatcherSeq = CharMatcher<Match, _::Success, C, Cs...>;
 
-struct AnyCharacter
-{
-    template<template<typename> typename... Actions, typename... States>
-    static Input match(const Input& input, States&... states)
-    {
-	if (input.eof()) return input.failure();
-	else return input.success(1);
-    }
-};
-
-template<char C, char... Cs>
-struct Characters
-{
-    template<template<typename> typename... Actions, typename... States>
-    static Input match(const Input& input, States&... states)
-    {
-	if (input.eof()) return input.failure();
-	else if (input.peek() == C) return input.success(1);
-	else if constexpr (sizeof...(Cs) == 0) return input.failure();
-	else return Characters<Cs...>::template match<Actions...>(input, states...);
-    }
-};
-
-template<char C, char... Cs>
-struct CharactersLower
-{
-    static_assert(C >= 'a' and C <= 'z');
-    template<template<typename> typename... Actions, typename... States>
-    static Input match(const Input& input, States&... states)
-    {
-	if (input.eof()) return input.failure();
-	else if (std::tolower(input.peek()) == C) return input.success(1);
-	else if constexpr (sizeof...(Cs) == 0) return input.failure();
-	else return CharactersLower<Cs...>::template match<Actions...>(input, states...);
-    }
-};
+}; // end ns _
 
 template<char C, char... Cs>
-struct String
-{
-    template<template<typename> typename... Actions, typename... States>
-    static Input match(const Input& input, States&... states)
-    {
-	if (input.eof()) return input.failure();
-	else if (input.peek() != C) return input.failure();
-	else if constexpr (sizeof...(Cs) == 0) return input.success(1);
-	else return String<Cs...>::template match<Actions...>(input.success(1), states...);
-    }
-};
+using Character = _::CharMatcherSet<_::NormalAction<_::EqualTo>, C, Cs...>;
 
 template<char C, char... Cs>
-struct StringLower
-{
-    static_assert(C < 'A' or C > 'Z');
-    template<template<typename> typename... Actions, typename... States>
-    static Input match(const Input& input, States&... states)
-    {
-	if (input.eof()) return input.failure();
-	else if (std::tolower(input.peek()) != C) return input.failure();
-	else if constexpr (sizeof...(Cs) == 0) return input.success(1);
-	else return StringLower<Cs...>::template match<Actions...>(input.success(1), states...);
-    }
-};
+using CharacterCaseless = _::CharMatcherSet<_::NormalAction<_::EqualToCaseless>, C, Cs...>;
 
+using AnyCharacter = _::CharMatcherSet<_::NormalAction<_::AlwaysTrue>, '?'>;
+
+template<char C, char... Cs>
+using NotCharacter = _::CharMatcherSet<_::InverseAction<_::EqualTo>, C, Cs...>;
+
+template<char C, char... Cs>
+using NotCharacterCaseless = _::CharMatcherSet<_::InverseAction<_::EqualToCaseless>, C, Cs...>;
+
+template<char C, char... Cs>
+using String = _::CharMatcherSeq<_::InverseAction<_::NotEqualTo>, C, Cs...>;
+
+template<char C, char... Cs>
+using StringCaseless = _::CharMatcherSeq<_::InverseAction<_::NotEqualToCaseless>, C, Cs...>;
 
 // Convenience Parsers for Character
 //
@@ -122,11 +99,11 @@ using L = Character<'L'>;
 using u = Character<'u'>;
 using U = Character<'U'>;
 
-using _e = CharacterLower<'e'>;
-using _l = CharacterLower<'l'>;
-using _p = CharacterLower<'p'>;
-using _u = CharacterLower<'u'>;
-using _x = CharacterLower<'x'>;
+using _e = CharacterCaseless<'e'>;
+using _l = CharacterCaseless<'l'>;
+using _p = CharacterCaseless<'p'>;
+using _u = CharacterCaseless<'u'>;
+using _x = CharacterCaseless<'x'>;
 
 using Space = Character<' '>;
 using Tab = Character<'\t'>;
@@ -181,7 +158,7 @@ using Divide = Character<'/'>;
 namespace s
 {
 
-using _ll = StringLower<'l','l'>;
+using _ll = StringCaseless<'l','l'>;
 
 }; // end ns s
 

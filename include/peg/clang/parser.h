@@ -11,8 +11,8 @@ namespace peg::clang
 
 // 6.4.4.2 - Floating Constants
 //
-struct MaybeFloatingSuffix : Maybe<Characters<'f', 'l', 'F', 'L'>> {};
-struct MaybeSign : Maybe<Characters<'-', '+'>> {};
+struct MaybeFloatingSuffix : Maybe<Character<'f', 'l', 'F', 'L'>> {};
+struct MaybeSign : Maybe<Character<'-', '+'>> {};
 struct Digit : Range<'0','9'> {};
 struct DigitSequence : OneOrMore<Digit> {};
 
@@ -37,7 +37,7 @@ struct DecimalFloatingConstant : Or<
     Seq<DigitSequence, ExponentPart, MaybeFloatingSuffix>>
 {};
 
-struct HexadecimalPrefix : StringLower<'0','x'> {};
+struct HexadecimalPrefix : StringCaseless<'0','x'> {};
 struct HexadecimalFloatingConstant : Or<
     Seq<HexadecimalPrefix, HexadecimalFractionalConstant, Maybe<BinaryExponentPart>,
 	MaybeFloatingSuffix>,
