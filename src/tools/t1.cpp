@@ -64,28 +64,10 @@ struct MatchPop
 };
 
 template<class Prefix, class Regular>
-struct PrefixZeroOrMore : Sequence<Prefix, ZeroOrMore<Regular>> {};
+struct PrefixZeroPlus : Sequence<Prefix, ZeroOrMore<Regular>> {};
 
 template<class Prefix, class Regular>
-struct PrefixOneOrMore : Sequence<Prefix, OneOrMore<Regular>> {};
-
-struct Digit : Range<'0','9'> {};
-struct NonZeroDigit : Range<'1','9'> {};
-struct DecimalConstant : PrefixZeroOrMore<NonZeroDigit, Digit> {};
-
-struct OctalDigit : Range<'0','7'> {};
-struct OctalConstant : PrefixZeroOrMore<Character<'0'>, OctalDigit> {};
-
-struct HexadecimalDigit : Range<'0','9','a','f','A','F'> {};
-struct HexadecimalPrefix : Sequence<Character<'0'>, Choice<Character<'x'>, Character<'X'>>> {};
-struct HexadecimalConstant : Sequence<HexadecimalPrefix, OneOrMore<HexadecimalDigit>> {};
-
-struct HexQuad: Sequence<HexadecimalDigit, HexadecimalDigit, HexadecimalDigit, HexadecimalDigit>{};
-struct UniversalCharacterName : Sequence<c::Backslash, Range<'u','u','U','U'>, HexQuad> {};
-
-struct IdentifierDigit : Choice<Range<'a','z','A','Z','_','_','0','9'>, UniversalCharacterName> {};
-struct IdentifierNonDigit : Choice<Range<'a','z','A','Z','_','_'>, UniversalCharacterName> {};
-struct Identifier : Sequence<IdentifierNonDigit, ZeroOrMore<IdentifierDigit>> {};
+struct PrefixOnePlus : Sequence<Prefix, OneOrMore<Regular>> {};
 
 int tool_main(int argc, const char *argv[])
 {
@@ -93,12 +75,12 @@ int tool_main(int argc, const char *argv[])
     opts.process(argc, argv);
     cout << std::boolalpha;
 
-    for (auto input : opts.extra())
-    {
-	auto state = Environment{};
-	auto r = parse<Identifier, DebugAction>(input, state);
-	cout << input << ": " << (bool)r << " " << r.match() << endl;
-    }
+    // for (auto input : opts.extra())
+    // {
+    // 	auto state = Environment{};
+    // 	auto r = parse<Identifier, DebugAction>(input, state);
+    // 	cout << input << ": " << (bool)r << " " << r.match() << endl;
+    // }
     return 0;
 }
 

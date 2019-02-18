@@ -47,6 +47,7 @@ struct Choice
     }
 };
 
+template<class... Ps> using Seq = Sequence<Ps...>;
 template<class... Ps> using And = Sequence<Ps...>;
 template<class... Ps> using Or = Choice<Ps...>;
 
