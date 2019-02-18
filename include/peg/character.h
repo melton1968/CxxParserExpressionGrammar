@@ -8,7 +8,7 @@
 namespace peg
 {
 
-namespace _
+namespace detail::character
 {
 struct Identity { Input operator()(const Input& input) const { return input; } };
 struct Success { Input operator()(const Input& input) const { return input.success(1); } };
@@ -60,32 +60,40 @@ struct CharMatcher
 };
 
 template<class Match, char C, char... Cs>
-using CharMatcherSet = CharMatcher<Match, _::Identity, C, Cs...>;
+using CharMatcherSet = CharMatcher<Match, Identity, C, Cs...>;
 
 template<class Match, char C, char... Cs>
-using CharMatcherSeq = CharMatcher<Match, _::Success, C, Cs...>;
-
-}; // end ns _
+using CharMatcherSeq = CharMatcher<Match, Success, C, Cs...>;
 
 template<char C, char... Cs>
-using Character = _::CharMatcherSet<_::NormalAction<_::EqualTo>, C, Cs...>;
+using Character = CharMatcherSet<NormalAction<EqualTo>, C, Cs...>;
 
 template<char C, char... Cs>
-using CharacterCaseless = _::CharMatcherSet<_::NormalAction<_::EqualToCaseless>, C, Cs...>;
+using CharacterCaseless = CharMatcherSet<NormalAction<EqualToCaseless>, C, Cs...>;
 
-using AnyCharacter = _::CharMatcherSet<_::NormalAction<_::AlwaysTrue>, '?'>;
-
-template<char C, char... Cs>
-using NotCharacter = _::CharMatcherSet<_::InverseAction<_::EqualTo>, C, Cs...>;
+using AnyCharacter = CharMatcherSet<NormalAction<AlwaysTrue>, '?'>;
 
 template<char C, char... Cs>
-using NotCharacterCaseless = _::CharMatcherSet<_::InverseAction<_::EqualToCaseless>, C, Cs...>;
+using NotCharacter = CharMatcherSet<InverseAction<EqualTo>, C, Cs...>;
 
 template<char C, char... Cs>
-using String = _::CharMatcherSeq<_::InverseAction<_::NotEqualTo>, C, Cs...>;
+using NotCharacterCaseless = CharMatcherSet<InverseAction<EqualToCaseless>, C, Cs...>;
 
 template<char C, char... Cs>
-using StringCaseless = _::CharMatcherSeq<_::InverseAction<_::NotEqualToCaseless>, C, Cs...>;
+using String = CharMatcherSeq<InverseAction<NotEqualTo>, C, Cs...>;
+
+template<char C, char... Cs>
+using StringCaseless = CharMatcherSeq<InverseAction<NotEqualToCaseless>, C, Cs...>;
+
+}; // end ns detail::character
+
+using detail::character::Character;
+using detail::character::CharacterCaseless;
+using detail::character::AnyCharacter;
+using detail::character::NotCharacter;
+using detail::character::NotCharacterCaseless;
+using detail::character::String;
+using detail::character::StringCaseless;
 
 // Convenience Parsers for Character
 //
