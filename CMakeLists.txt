@@ -36,7 +36,8 @@ add_executable(calculator src/calculator.cpp)
 target_link_libraries(calculator core fmt)
 
 set(TOOLS
-  t0)
+  t0
+  t1)
 
 foreach(NAME ${TOOLS})
   add_executable(${NAME} src/tools/${NAME}.cpp)
