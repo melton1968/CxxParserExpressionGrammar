@@ -4,7 +4,7 @@
 #pragma once
 #include "peg/peg.h"
 
-namespace peg
+namespace peg::clang
 {
 
 // 6.4.5 String literals

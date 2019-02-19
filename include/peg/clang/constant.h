@@ -24,16 +24,14 @@ struct HexadecimalPrefix : StringCaseless<'0','x'> {};
 struct HexadecimalDigitSequence : OneOrMore<HexadecimalDigit> {};
 struct HexadecimalConstant : Seq<HexadecimalPrefix, HexadecimalDigitSequence> {};
 
-struct IntegerSuffixUL : Seq<c::_u, Maybe<c::_l>> {};
-struct IntegerSuffixULL : Seq<c::_u, Maybe<s::_ll>> {};
-struct IntegerSuffixL :	Seq<c::_l, Maybe<c::_u>> {};
-struct IntegerSuffixLL : Seq<s::_ll, Maybe<c::_u>> {};
-struct IntegerSuffix : Or<IntegerSuffixUL, IntegerSuffixULL, IntegerSuffixL, IntegerSuffixLL> {};
+struct IntegerSuffixUx : Seq<c::_u, Maybe<c::_l>, Maybe<c::_l>> {};
+struct IntegerSuffixLx : Seq<c::_l, Maybe<c::_l>, Maybe<c::_u>> {};
+struct IntegerSuffix : Or<IntegerSuffixUx, IntegerSuffixLx> {};
 
 struct IntegerConstant : Or<
-    Seq<DecimalConstant, Maybe<IntegerSuffix>>,
+    Seq<HexadecimalConstant, Maybe<IntegerSuffix>>,
     Seq<OctalConstant, Maybe<IntegerSuffix>>,
-    Seq<HexadecimalConstant, Maybe<IntegerSuffix>>>
+    Seq<DecimalConstant, Maybe<IntegerSuffix>>>
 {};
 
 // 6.4.4.2 - Floating Constants

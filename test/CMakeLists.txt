@@ -7,8 +7,12 @@ set(TESTS
   block
   character
   clang/comment
+  clang/constant
   clang/floating_constant
+  clang/header
   clang/identifier
+  clang/keyword
+  clang/string
   identifier
   must
   number
