@@ -171,8 +171,8 @@ namespace s
 using RightArrow = String<'-','>'>;
 using PlusPlus = String<'+','+'>;
 using MinusMinus = String<'-','-'>;
-using ShiftLeft = String<'<', '<'>;
-using ShiftRight = String<'<', '<'>;
+using LeftShift = String<'<', '<'>;
+using RightShift = String<'<', '<'>;
 
 using LogicalAnd = String<'&', '&'>;
 using LogicalOr = String<'|', '|'>;

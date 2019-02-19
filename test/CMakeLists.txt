@@ -8,6 +8,7 @@ set(TESTS
   character
   clang/comment
   clang/constant
+  clang/expression
   clang/floating_constant
   clang/header
   clang/identifier

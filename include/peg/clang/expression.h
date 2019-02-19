@@ -3,15 +3,20 @@
 
 #pragma once
 #include "peg/peg.h"
-#include "peg/keyword.h"
-#include "peg/indentifier.h"
+#include "peg/clang/constant.h"
+#include "peg/clang/keyword.h"
+#include "peg/clang/identifier.h"
+#include "peg/clang/string.h"
 
 namespace peg::clang
 {
 
 // 6.5.1 Primary expression
 //
-struct PrimaryExpression : Choice<
+struct Expression;
+struct GenericSelection;
+
+struct PrimaryExpression : Or<
     Identifier,
     Constant,
     StringLiteral,
@@ -21,12 +26,15 @@ struct PrimaryExpression : Choice<
 
 // 6.5.1.1 Generic selection
 //
-struct GenericAssociation : Choice<
+struct TypeName;
+struct AssignmentExpression;
+
+struct GenericAssociation : Or<
     Seq<TypeName, c::Colon, AssignmentExpression>,
     Seq<KeywordDefault, c::Colon, AssignmentExpression>>
 {};
 
-struct GenericAssocList : Choice<
+struct GenericAssocList : Or<
     GenericAssociation,
     Seq<GenericAssocList, c::Comma, GenericAssociation>>
 {};
@@ -42,15 +50,17 @@ struct GenericSelection : Seq<
 
 // 6.5.2 Postfix operators
 //
-struct ArgumentExpressionList : Choice<
-    AssignmentExpressionList,
-    Seq<ArgumentExpressionList, c::Comma, AssignmentExpression>
+struct InitializerList;
+
+struct ArgumentExpressionList : Or<
+    AssignmentExpression,
+    Seq<ArgumentExpressionList, c::Comma, AssignmentExpression>>
 {};
 
-struct PostfixExpression : Choice<
+struct PostfixExpression : Or<
     PrimaryExpression,
     Seq<PostfixExpression, c::OpenBracket, Expression, c::CloseBracket>,
-    Seq<PostfixExpression, c::OpenParen, Maybe<ArgumentExpressionList> c::CloseParen>,
+    Seq<PostfixExpression, c::OpenParen, Maybe<ArgumentExpressionList>, c::CloseParen>,
     Seq<PostfixExpression, c::Period, Identifier>,
     Seq<PostfixExpression, s::RightArrow, Identifier>,
     Seq<PostfixExpression, s::PlusPlus>,
@@ -61,16 +71,18 @@ struct PostfixExpression : Choice<
 
 // 6.5.3 Unary operators
 //
-struct UnaryOperator : Choice<
+struct CastExpression;
+
+struct UnaryOperator : Or<
     c::BitAnd,
-    c::Mulitply,
+    c::Multiply,
     c::Plus,
     c::Minus,
     c::Tilde,
     c::Bang>
 {};
 
-struct UnaryExpression : Choice<
+struct UnaryExpression : Or<
     PostfixExpression,
     Seq<s::PlusPlus, UnaryExpression>,
     Seq<s::MinusMinus, UnaryExpression>,
@@ -82,14 +94,14 @@ struct UnaryExpression : Choice<
 
 // 6.5.4 Cast operators
 //
-struct CastExpression : Choice<
+struct CastExpression : Or<
     UnaryExpression,
     Seq<c::OpenParen, TypeName, c::CloseParen, CastExpression>>
 {};
 
 // 6.5.5 Multiplicative operators
 //
-struct MuliplicativeExpression : Choice<
+struct MultiplicativeExpression : Or<
     CastExpression,
     Seq<MultiplicativeExpression, c::Multiply, CastExpression>,
     Seq<MultiplicativeExpression, c::Divide, CastExpression>,
@@ -98,7 +110,7 @@ struct MuliplicativeExpression : Choice<
 
 // 6.5.6 Additive operators
 //
-struct AdditiveExpression : Choice<
+struct AdditiveExpression : Or<
     MultiplicativeExpression,
     Seq<AdditiveExpression, c::Plus, MultiplicativeExpression>,
     Seq<AdditiveExpression, c::Minus, MultiplicativeExpression>>
@@ -106,7 +118,7 @@ struct AdditiveExpression : Choice<
 
 // 6.5.7 Bitwise shift operators
 //
-struct ShiftExpression : Choice<
+struct ShiftExpression : Or<
     AdditiveExpression,
     Seq<ShiftExpression, s::LeftShift, AdditiveExpression>,
     Seq<ShiftExpression, s::RightShift, AdditiveExpression>>
@@ -114,17 +126,17 @@ struct ShiftExpression : Choice<
 
 // 6.5.8 Relational operators
 //
-struct RelationalExpression : Choice<
+struct RelationalExpression : Or<
     ShiftExpression,
     Seq<RelationalExpression, c::LessThan, ShiftExpression>,
     Seq<RelationalExpression, c::GreaterThan, ShiftExpression>,    
-    Seq<RelationalExpression, c::LessEqual, ShiftExpression>,
-    Seq<RelationalExpression, c::GreaterEqual, ShiftExpression>>
+    Seq<RelationalExpression, s::LessEqual, ShiftExpression>,
+    Seq<RelationalExpression, s::GreaterEqual, ShiftExpression>>
 {};
 
 // 6.5.9 Equality operators
 //
-struct EqualityExpression : Choice<
+struct EqualityExpression : Or<
     RelationalExpression,
     Seq<EqualityExpression, s::EqualEqual, RelationalExpression>,
     Seq<EqualityExpression, s::NotEqual, RelationalExpression>>
@@ -132,49 +144,49 @@ struct EqualityExpression : Choice<
 
 // 6.5.10 Bitwise and operator
 //
-struct AndExpression : Choice<
+struct AndExpression : Or<
     EqualityExpression,
-    Seq<AndExpression, s::BitAnd, EqualityExpression>>
+    Seq<AndExpression, c::BitAnd, EqualityExpression>>
 {};
 
 // 6.5.11 Bitwise exclusive or operator
 //
-struct ExclusiveOrExpression : Choice<
+struct ExclusiveOrExpression : Or<
     AndExpression,
     Seq<ExclusiveOrExpression, c::Caret, AndExpression>>
 {};
 
 // 6.5.12 Bitwise inclusive or operator
 //
-struct InclusiveOrExpression : Choice<
+struct InclusiveOrExpression : Or<
     ExclusiveOrExpression,
-    Seq<InclusiveOrExpression, s::BitOr, ExclusiveOrExpression>>
+    Seq<InclusiveOrExpression, c::BitOr, ExclusiveOrExpression>>
 {};
 
 // 6.5.13 Logical And operator
 //
-struct LogicalAndExpression : Choice<
+struct LogicalAndExpression : Or<
     InclusiveOrExpression,
     Seq<LogicalAndExpression, s::LogicalAnd, InclusiveOrExpression>>
 {};
 
 // 6.5.14 Logical Or operator
 //
-struct LogicalOrExpression : Choice<
+struct LogicalOrExpression : Or<
     LogicalAndExpression,
     Seq<LogicalOrExpression, s::LogicalAnd, LogicalAndExpression>>
 {};
 
 // 6.5.15 Conditional operator
 //
-struct ConditionalExpression : Choice<
+struct ConditionalExpression : Or<
     LogicalOrExpression,
-    Seq<LogicalOrExpression, c::QuestionMark, Expressioni, c::Colon, ConditionalExpression>>
+    Seq<LogicalOrExpression, c::QuestionMark, Expression, c::Colon, ConditionalExpression>>
 {};
 
 // 6.5.16 Assignment operators
 //
-struct AssignmentOperator : Choice<
+struct AssignmentOperator : Or<
     c::Equal,
     s::MultiplyEqual,
     s::DivideEqual,
@@ -187,14 +199,14 @@ struct AssignmentOperator : Choice<
     s::BitOrEqual>
 {};
 
-struct AssignmentExpression : Choice<
+struct AssignmentExpression : Or<
     ConditionalExpression,
     Seq<UnaryExpression, AssignmentOperator, AssignmentExpression>>
 {};
 
 // 6.5.17 Comma operator
 //
-struct Expression : Choice<
+struct Expression : Or<
     AssignmentExpression,
     Seq<Expression, c::Comma, AssignmentExpression>>
 {};
@@ -203,31 +215,9 @@ struct Expression : Choice<
 //
 struct ConstantExpression : ConditionalExpression {};
 
-// 6.7 Declarations
-//
-struct Declaration : Choice<
-    Seq<DeclarationSpecifiers, Maybe<InitDeclarationList>, c::SemiColon>,
-    StaticAssertDeclaration>
-{};
-
-struct DeclarationSpecifiers : Choice<
-    Seq<StorageClassSpecifier, Maybe<DeclarationSpecifiers>>,
-    Seq<TypeSpecifier, Maybe<DeclarationSpecifiers>>,
-    Seq<TypeQualifier, Maybe<DeclarationSpecifiers>>,
-    Seq<FunctionSpecifier, Maybe<DeclarationSpecifiers>>,
-    Seq<AlignmentSpecifier, Maybe<DeclarationSpecifiers>>
-{};
-
-struct InitDeclaratorList : Choice<
-    InitDeclarator,
-    Seq<InitDeclaratorList, c::Comma, InitDeclarator>>
-{};
-
-struct InitDeclarator : Seq<Declarator, Maybe<c::Equal, Initializer>> {};
-
 // 6.7.1 Storage class specifiers
 //
-struct StorageClassSpecifier : Choice<
+struct StorageClassSpecifier : Or<
     KeywordTypedef,
     KeywordExtern,
     KeywordStatic,
@@ -236,15 +226,71 @@ struct StorageClassSpecifier : Choice<
     KeywordRegister>
 {};
 
+// 6.7.2.1 Structure and union specifiers.
+//
+struct Declarator;
+struct TypeSpecifier;
+struct TypeQualifier;
+struct StaticAssertDeclaration;
+
+struct StructDeclarator : Or<
+    Declarator,
+    Seq<Maybe<Declarator>, c::Colon, ConstantExpression>>
+{};
+    
+struct StructDeclaratorList : Or<
+    StructDeclarator,
+    Seq<StructDeclaratorList, c::Comma, StructDeclarator>>
+{};
+
+struct SpecifierQualifierList : Or<
+    Seq<TypeSpecifier, Maybe<SpecifierQualifierList>>,
+    Seq<TypeQualifier, Maybe<SpecifierQualifierList>>>
+{};
+
+struct StructDeclaration : Or<
+    Seq<SpecifierQualifierList, Maybe<StructDeclaratorList>, c::SemiColon>,
+    StaticAssertDeclaration>
+{};
+
+struct StructOrUnion : Or<KeywordStruct, KeywordUnion> {};
+struct StructDeclarationList : OneOrMore<StructDeclaration> {};
+
+struct StructOrUnionSpecifier : Or<
+    Seq<StructOrUnion, Maybe<Identifier>, c::OpenCurly, StructDeclarationList, c::CloseCurly>,
+    Seq<StructOrUnion, Identifier>>
+{};
+
+// 6.7.2.2 Enumeration specifiers
+//
+struct Enumerator : Seq<EnumerationConstant, Maybe<c::Equal, ConstantExpression>> {};
+
+struct EnumeratorList : Or<
+    Enumerator,
+    Seq<EnumeratorList, c::Comma, Enumerator>>
+{};
+
+struct EnumSpecifier : Or<
+    Seq<KeywordEnum, Maybe<Identifier>, c::OpenCurly, EnumeratorList, Maybe<c::Comma>,
+	c::CloseCurly>,
+    Seq<KeywordEnum, Identifier>>
+{};
+
+// 6.7.2.4 Atomic type specifier
+//
+struct AtomicTypeSpecifier : Seq<KeywordAtomic, c::OpenParen, TypeName, c::CloseParen> {};
+
 // 6.7.2 Type specifiers
 //
-struct TypeSpecifier : Choice<
+struct TypedefName;
+
+struct TypeSpecifier : Or<
     KeywordVoid,
     KeywordChar,
     KeywordShort,
     KeywordInt,
     KeywordLong,
-    keywordFloat,
+    KeywordFloat,
     KeywordDouble,
     KeywordSigned,
     KeywordUnsigned,
@@ -256,57 +302,9 @@ struct TypeSpecifier : Choice<
     TypedefName>
 {};
 
-// 6.7.2.1 Structure and union specifiers.
-//
-struct StructOrUnionPpecifier : Choice<
-    Seq<StructOrUnion, Maybe<Identifier>, c::OpenCurly, StructDeclarationList, c::CloseCurly>,
-    Seq<StructOrUnion, Identifier>
-{};
-
-struct StructOrUnion : Choice<KeywordStruct, KeywordUnion> {};
-struct StructDeclarationList : OneOrMore<StructDeclaration> {};
-
-struct StructDeclaration : Choice<
-    Seq<SpecifierQualifierList, Maybe<StructDeclaratorList>, c::SemiColon>,
-    StaticAssertDeclaration>
-{};
-
-struct SpecifierQualifierList : Choice<
-    Seq<TypeSpecifier Maybe<SpecifierQualifierList>>,
-    Seq<TypeQualifier, Maybe<SpecifierQualifierList>>>
-{};
-
-struct StructDeclaratorList : Choice<
-    StructDeclarator,
-    Seq<StructDeclaratorList, c::Comma, StructDeclarator>>
-{};
-
-struct StructDeclarator : Choice<
-    Declarator,
-    Seq<Maybe<Declarator>, c::Colon, ConstantExpression>>
-{};
-    
-// 6.7.2.2 Enumeration specifiers
-//
-struct Enumerator : Seq<EnumerationConstant, Maybe<c::Equal, ConstantExpression>> {};
-
-struct EnumeratorList : Choice<
-    Enumerator,
-    Seq<EnumeratorList, c::Comma, Enumerator>>
-{};
-
-struct EnumSpecifier : Choice<
-    Seq<KeywordEnum, Maybe<Identifier>, LeftCurly, EnumeratorList, Maybe<c::Comma>, RightCurly>,
-    Seq<KeywordEnum, Identifier>>
-{};
-
-// 6.7.2.4 Atomic type specifier
-//
-struct AtomicTypeSpecifier : Seq<KeywordAtomic, c::OpenParen, TypeName, c::CloseParen> {};
-
 // 6.7.3 Type qualifier
 //
-struct TypeQualifer : Choice<
+struct TypeQualifier : Or<
     KeywordConst,
     KeywordRestrict,
     KeywordVolatile,
@@ -315,53 +313,69 @@ struct TypeQualifer : Choice<
 
 // 6.7.4 Function specifier
 //
-struct FunctionSpecifier : Choice<KeywordInline, KeywordNoReturn> {};
+struct FunctionSpecifier : Or<KeywordInline, KeywordNoReturn> {};
 
 // 6.7.5 Alignment specifier
 //
-struct AlighmentSpecifier : Choice<
+struct AlignmentSpecifier : Or<
     Seq<KeywordAlignas, c::OpenParen, TypeName, c::CloseParen>,
     Seq<KeywordAlignas, c::OpenParen, ConstantExpression, c::CloseParen>>
 {};
 
+
+
 // 6.7.6 Declarators
 //
-struct TypeQualifierList : OneOrMore<TypeQualifier> {};
-struct Pointer : OneOrMore<c::Star, Maybe<TypeQualifierList>> {};
+struct AbstractDeclarator;
+struct DeclarationSpecifiers;
+struct DirectDeclarator;
+struct IdentifierList;
+struct ParameterDeclaration;
+struct Pointer;
+struct TypeQualifierList;
 
-struct ParameterList : Choice<
-    ParamterDeclaration,
+struct Declarator : Seq<Maybe<Pointer>, DirectDeclarator> {};
+
+struct DirectDeclarator : Or<
+    Identifier,
+    Seq<c::OpenParen, Declarator, c::CloseParen>,
+    Seq<DirectDeclarator, c::OpenBracket, Maybe<TypeQualifierList>, Maybe<AssignmentExpression>,
+	c::CloseBracket>,
+    Seq<DirectDeclarator, c::OpenBracket, KeywordStatic, Maybe<TypeQualifierList>,
+	AssignmentExpression, c::CloseBracket>,
+    Seq<DirectDeclarator, c::OpenBracket, TypeQualifierList, KeywordStatic,
+	AssignmentExpression, c::CloseBracket>,
+    Seq<DirectDeclarator, c::OpenBracket, Maybe<TypeQualifierList>, c::Star, c::CloseBracket>,
+    Seq<DirectDeclarator, c::OpenParen, TypeQualifierList, c::CloseParen>,
+    Seq<DirectDeclarator, c::OpenParen, Maybe<IdentifierList>, c::CloseParen>>
+{};
+
+struct Pointer : OneOrMore<c::Star, Maybe<TypeQualifierList>> {};
+struct TypeQualifierList : OneOrMore<TypeQualifier> {};
+
+struct ParameterTypeList : Or<
+    ParameterTypeList,
+    Seq<ParameterTypeList, c::Comma, s::Elipsis>>
+{};
+
+struct ParameterList : Or<
+    ParameterDeclaration,
     Seq<ParameterList, c::Comma, ParameterDeclaration>>
 {};
 
-struct ParameterDeclaration : Choice<
+struct ParameterDeclaration : Or<
     Seq<DeclarationSpecifiers, Declarator>,
     Seq<DeclarationSpecifiers, Maybe<AbstractDeclarator>>>
 {};
 
-struct IdentiiferList : Choice<
+struct IdentifierList : Or<
     Identifier,
     Seq<IdentifierList, c::Comma, Identifier>>
 {};
 
-struct Declarator : Seq<Maybe<Pointer DirectDeclarator> {};
-struct DirectDeclarator : Choice<
-    Identifier,
-    Seq<c::OpenParent, Declarator, c::CloseParen>,
-    Seq<DirectDeclartor c::OpenBracket, Maybe<TypeQualifierList>, Maybe<AssigmentExpression>,
-	c::CloseBracket>,
-    Seq<DirectDeclartor c::OpenBracket, KeywordStatic, Maybe<TypeQualifierList>,
-	AssigmentExpression, c::CloseBracket>,
-    Seq<DirectDeclartor c::OpenBracket, TypeQualifierList, KeywordStatic,
-	AssigmentExpression, c::CloseBracket>,
-    Seq<DirectDeclartor c::OpenBracket, Maybe<TypeQualifierList>, c::Star, c::CloseBracket>,
-    Seq<DirectDeclartor c::OpenParen, TypeQualifierList, c::CloseParen>,
-    Seq<DirectDeclartor c::OpenParen, Maybe<IdentifierList>, c::CloseParen>,
-    
-
 // 6.7.7 Type names
 //
-struct DirectAbstractDeclarator : Choice<
+struct DirectAbstractDeclarator : Or<
     Seq<c::OpenParen, AbstractDeclarator, c::CloseParen>,
     Seq<Maybe<DirectAbstractDeclarator>, c::OpenBracket, Maybe<TypeQualifierList>,
 	Maybe<AssignmentExpression>, c::CloseParen>,
@@ -373,14 +387,12 @@ struct DirectAbstractDeclarator : Choice<
     Seq<Maybe<DirectAbstractDeclarator>, c::OpenParen, Maybe<ParameterTypeList>, c::CloseParen>>
 {};
 	
-struct AbstractDeclarator : Choice<
+struct AbstractDeclarator : Or<
     Pointer,
-    Seq<Maybe<Pointer>, DirectAbstractDeclarator>
+    Seq<Maybe<Pointer>, DirectAbstractDeclarator>>
 {};
 
 struct TypeName : Seq<SpecifierQualifierList, Maybe<AbstractDeclarator>> {};
-
-	
 
 // 6.7.8 Type definitions
 //
@@ -388,7 +400,9 @@ struct TypedefName : Identifier {};
 
 // 6.7.9 Initialization
 //
-struct Designator : Choice<
+struct Initializer;
+
+struct Designator : Or<
     Seq<c::OpenBracket, ConstantExpression, c::CloseBracket>,
     Seq<c::Period, Identifier>>
 {};
@@ -399,12 +413,12 @@ struct Designation : Seq<DesignatorList, c::Equal> {};
 struct Initializer;
 struct InitializerList;
 
-struct InitializerList : Choice<
+struct InitializerList : Or<
     Seq<Maybe<Designation>, Initializer>,
-    Seq<InitializerList, Comma, Maybe<Designation> Intializer>>
+    Seq<InitializerList, c::Comma, Maybe<Designation>, Initializer>>
 {};
 
-struct Initializer : Choice<
+struct Initializer : Or<
     AssignmentExpression,
     Seq<c::OpenCurly, InitializerList, Maybe<c::Comma>, c::CloseCurly>>
 {};
@@ -412,14 +426,36 @@ struct Initializer : Choice<
 
 // 6.7.10 Static assertions
 //
-struct StaticAssertDecl : Seq<
+struct StaticAssertDeclaration : Seq<
     KeywordStaticAssert,
-    OpenParen,
+    c::OpenParen,
     ConstantExpression,
-    Comma,
+    c::Comma,
     StringLiteral,
-    CloseParen,
-    SemiColon>
+    c::CloseParen,
+    c::SemiColon>
 {};
 
-}; // end ns peg
+// 6.7 Declarations
+//
+struct InitDeclarator : Seq<Declarator, Maybe<c::Equal, Initializer>> {};
+
+struct InitDeclaratorList : Or<
+    InitDeclarator,
+    Seq<InitDeclaratorList, c::Comma, InitDeclarator>>
+{};
+
+struct DeclarationSpecifiers : Or<
+    Seq<StorageClassSpecifier, Maybe<DeclarationSpecifiers>>,
+    Seq<TypeSpecifier, Maybe<DeclarationSpecifiers>>,
+    Seq<TypeQualifier, Maybe<DeclarationSpecifiers>>,
+    Seq<FunctionSpecifier, Maybe<DeclarationSpecifiers>>,
+    Seq<AlignmentSpecifier, Maybe<DeclarationSpecifiers>>>
+{};
+
+struct Declaration : Or<
+    Seq<DeclarationSpecifiers, /*Maybe<InitDeclarationList>,*/ c::SemiColon>,
+    StaticAssertDeclaration>
+{};
+	
+}; // end ns peg::clang
