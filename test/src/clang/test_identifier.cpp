@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include "peg/parse.h"
-#include "peg/clang/identifiers.h"
+#include "peg/clang/identifier.h"
 
 TEST(PegClang, IdentifierFailure)
 {

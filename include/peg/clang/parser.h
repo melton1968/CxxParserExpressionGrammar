@@ -2,10 +2,10 @@
 //
 
 #pragma once
-#include "peg/clang/comments.h"
-#include "peg/clang/constants.h"
-#include "peg/clang/identifiers.h"
-#include "peg/clang/keywords.h"
-#include "peg/clang/punctuators.h"
-#include "peg/clang/strings.h"
+#include "peg/clang/comment.h"
+#include "peg/clang/constant.h"
+#include "peg/clang/identifier.h"
+#include "peg/clang/keyword.h"
+#include "peg/clang/punctuator.h"
+#include "peg/clang/string.h"
 

@@ -2,7 +2,7 @@
 //
 
 #pragma once
-#include "peg/clang/identifiers.h"
+#include "peg/clang/identifier.h"
 
 // N1570
 //

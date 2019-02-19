@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include "peg/parse.h"
-#include "peg/clang/comments.h"
+#include "peg/clang/comment.h"
 
 TEST(PegClang, CommentLineFailure)
 {

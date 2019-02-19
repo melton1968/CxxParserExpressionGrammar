@@ -3,7 +3,7 @@
 
 #pragma once
 #include "peg/peg.h"
-#include "peg/keywords.h"
+#include "peg/keyword.h"
 #include "peg/indentifier.h"
 
 namespace peg::clang
