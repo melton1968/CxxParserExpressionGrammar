@@ -7,7 +7,7 @@
 
 TEST(PegClang, StringLiteralFailure)
 {
-    for (auto str : { "\"abc", "abc\"" })
+    for (auto str : { "\"abc", "abc\"", "\"ab\nc\"", "\"ab\\c\"" })
     {
 	using Parser = peg::clang::StringLiteral;
 	auto r = peg::parse<Parser>(str);
@@ -18,7 +18,7 @@ TEST(PegClang, StringLiteralFailure)
 
 TEST(PegClang, StringLiteralSuccess)
 {
-    for (auto str : { "\"abc\"" })
+    for (auto str : { "\"abc\"", "u8\"abc\"", "u\"abc\"", "U\"abc\"", "L\"abc\"" })
     {
 	using Parser = peg::clang::StringLiteral;
 	auto r = peg::parse<Parser>(str);
