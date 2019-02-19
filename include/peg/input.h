@@ -9,96 +9,79 @@ namespace peg
 
 struct Input
 {
+    constexpr Input()
+    {}
+    
     Input(const string& str)
-	: m_valid(true)
+	: m_status(true)
 	, m_begin(str.c_str())
 	, m_end(m_begin + str.size())
-	, m_loc(m_begin)
 	, m_mark(m_begin)
+	, m_point(m_begin)
     { }
 
-    Input(bool valid, const char *begin, const char *end, const char *loc, const char *mark)
-	: m_valid(valid)
-	, m_begin(begin)
-	, m_end(end)
-	, m_loc(loc)
-	, m_mark(mark)
-    { }
+    explicit operator bool() const { return m_status; }
 
-    explicit operator bool() const { return m_valid; }
-
-    char peek() const { return *m_loc; }
-
-    bool status() const { return m_valid; }
+    bool status() const { return m_status; }
     const char *begin() const { return m_begin; }
     const char *end() const { return m_end; }
-    const char *loc() const { return m_loc; }
+    const char *point() const { return m_point; }
     const char *mark() const { return m_mark; }
-    string_view view() const { return { begin(), size_t(end() - begin()) }; }
+    bool eof() const { return m_point >= m_end; }
+    bool bof() const { return m_point == m_begin; }
     
-    bool eof() const { return m_loc >= m_end; }
-    bool bof() const { return m_loc == m_begin; }
-
-    void mark(const char *mark) { m_mark = mark; }
+    char peek() const { return *m_point; }
+    size_t source_size() const { return size_t(end() - begin()); }
+    string_view source() const { return { begin(), source_size() }; }
     
-    Input success(size_t n = 0) const
-    {
-	return Input{ true, m_begin, m_end, m_loc + n, m_mark };
-    }
-
-    Input failure() const
-    {
-	return Input{ false, m_begin, m_end, m_loc, m_mark };
-    }
-
-    Input with_status(bool success) const
-    {
-	return Input{ success, m_begin, m_end, m_loc, m_mark };
-    }
-
-    string match() const
-    {
-	if (m_valid)
-	    return string(m_mark, m_loc);
-	return string();
-    }
-
     size_t match_size() const
     {
-	if (m_valid)
-	    return m_loc - m_mark;
+	if (m_status)
+	    return m_point - m_mark;
 	return 0;
     }
     
-    string_view match_view() const
+    string_view match() const
     {
-	if (m_valid)
+	if (m_status)
 	    return string_view{ m_mark, match_size() };
 	return {};
     }
 
-    size_t size() const
-    {
-	if (m_valid)
-	    return m_loc - m_mark;
-	return 0;
-    }
+    void mark(const char *mark) { m_mark = mark; }
+    
+    Input success(size_t n = 0) const
+    { return with_status(true, n); }
+
+    Input failure() const
+    { return with_status(false); }
+
+    Input with_status(bool status, size_t advance = 0) const
+    { return Input{ status, m_begin, m_end, m_mark, m_point + advance}; }
 
     friend bool operator==(const Input& a, const Input& b)
     {
-	return a.m_valid == b.m_valid
+	return a.m_status == b.m_status
 	    and a.m_begin == b.m_begin
 	    and a.m_end == b.m_end
-	    and a.m_loc == b.m_loc
+	    and a.m_point == b.m_point
 	    and a.m_mark == b.m_mark;
     }
 
 private:
-    bool m_valid;
-    const char *m_begin;
-    const char *m_end;
-    const char *m_loc;
-    const char *m_mark;
+    Input(bool status, const char *begin, const char *end, const char *mark, const char *point)
+	: m_status(status)
+	, m_begin(begin)
+	, m_end(end)
+	, m_mark(mark)
+	, m_point(point)
+    { }
+
+    bool m_status{false};
+    const char *m_begin{nullptr};
+    const char *m_end{nullptr};
+    const char *m_mark{nullptr};
+    const char *m_point{nullptr};
 };
 
 }; // end peg

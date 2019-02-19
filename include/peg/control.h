@@ -26,7 +26,7 @@ struct Control
     template<typename Parser, template<typename> typename... Actions, typename... States>
     static Input match(Input input, States&... states)
     {
-	auto p = input.loc();
+	auto p = input.point();
 	auto r = Parser::template match<Actions...>(input, states...);
 	r.mark(p);
 	

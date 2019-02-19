@@ -41,7 +41,7 @@ struct MatchPush
 	auto r = Control::template match<P, Actions...>(input, env, states...);
 	if (not r) return r;
 
-	env.template push<ID>(r.match_view());
+	env.template push<ID>(r.match());
 	return r;
     }
 };
@@ -56,7 +56,7 @@ struct MatchPop
 	if (not r) return r;
 
 	auto str = env.template top<ID>();
-	if (str != r.match_view())
+	if (str != r.match())
 	    return input.failure();
 	env.template pop<ID>();
 	return r;

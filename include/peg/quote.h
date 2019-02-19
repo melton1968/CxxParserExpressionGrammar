@@ -17,7 +17,7 @@ struct QuotedString
 	if (input.eof()) return input.failure();
 	else if (input.peek() != Q) return input.failure();
 
-	const char *ptr = input.loc();
+	const char *ptr = input.point();
 	while (true)
 	{
 	    ++ptr;
@@ -26,7 +26,7 @@ struct QuotedString
 		return input.failure();
 
 	    if (*ptr == Q)
-		return input.success(++ptr - input.loc());
+		return input.success(++ptr - input.point());
 	    
 	    if (*ptr == E)
 		++ptr;

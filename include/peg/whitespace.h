@@ -12,10 +12,10 @@ struct WhiteSpace
     template<template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
-	auto p = input.loc();
+	auto p = input.point();
 	while (p < input.end() and std::isspace(*p))
 	    ++p;
-	return input.success(p - input.loc());
+	return input.success(p - input.point());
     }
 };
 
@@ -24,11 +24,11 @@ struct RequiredWhiteSpace
     template<template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
-	auto p = input.loc();
+	auto p = input.point();
 	while (p < input.end() and std::isspace(*p))
 	    ++p;
-	if (p == input.loc()) return input.failure();
-	else return input.success(p - input.loc());
+	if (p == input.point()) return input.failure();
+	else return input.success(p - input.point());
     }
 };
 
@@ -37,15 +37,15 @@ struct WhiteSpaceThruEndOfLine
     template<template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
-	auto p = input.loc();
+	auto p = input.point();
 	while (p < input.end() and std::isspace(*p))
 	{
 	    ++p;
 	    if (*(p - 1) == '\n')
 		break;
 	}
-	if (p == input.loc()) return input.failure();
-	else return input.success(p - input.loc());
+	if (p == input.point()) return input.failure();
+	else return input.success(p - input.point());
     }
 };
 
@@ -54,10 +54,10 @@ struct WhiteSpaceExceptEndOfLine
     template<template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
-	auto p = input.loc();
+	auto p = input.point();
 	while (p < input.end() and std::isspace(*p) and *p != '\n')
 	    ++p;
-	return input.success(p - input.loc());
+	return input.success(p - input.point());
     }
 };
 
@@ -66,11 +66,11 @@ struct RequiredWhiteSpaceExceptEndOfLine
     template<template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
-	auto p = input.loc();
+	auto p = input.point();
 	while (p < input.end() and std::isspace(*p) and *p != '\n')
 	    ++p;
-	if (p == input.loc()) return input.failure();
-	else return input.success(p - input.loc());
+	if (p == input.point()) return input.failure();
+	else return input.success(p - input.point());
     }
 };
 

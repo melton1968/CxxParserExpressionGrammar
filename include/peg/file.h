@@ -26,7 +26,7 @@ struct StartOfLine
 	if (input.bof()) return input.success();
 	else if (input.eof()) return input.failure();
 	
-	const char *ptr = input.loc();
+	const char *ptr = input.point();
 	if (*--ptr == '\n') return input.success();
 	else return input.failure();
     }
@@ -50,11 +50,11 @@ struct EndOfLine
 	if (input.eof())
 	    return input.failure();
 
-	const char *ptr = input.loc();
+	const char *ptr = input.point();
 	if (*ptr == '\r')
 	    ++ptr;
 	if (*ptr == '\n')
-	    return input.success(++ptr - input.loc());
+	    return input.success(++ptr - input.point());
 	
 	return input.failure();
     }
@@ -68,11 +68,11 @@ struct EndOfLineOrFile
 	if (input.eof())
 	    return input.success();
 
-	const char *ptr = input.loc();
+	const char *ptr = input.point();
 	if (*ptr == '\r')
 	    ++ptr;
 	if (*ptr == '\n')
-	    return input.success(++ptr - input.loc());
+	    return input.success(++ptr - input.point());
 	
 	return input.failure();
     }
