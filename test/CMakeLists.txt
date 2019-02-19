@@ -8,6 +8,7 @@ set(TESTS
   character
   clang/comment
   clang/floating_constant
+  clang/identifier
   identifier
   must
   number

@@ -11,7 +11,9 @@ namespace peg
 //
 struct SChar : NotCharacter<'"', '\\', '\n'> {};
 struct SCharSequence : OneOrMore<SChar> {};
+
 struct EncodingPrefix : Or<String<'u','8'>, c::u, c::U, c::L> {};
+
 struct StringLiteral : Seq<
     Maybe<EncodingPrefix>,
     c::DoubleQuote,
