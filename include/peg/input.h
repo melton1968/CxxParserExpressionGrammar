@@ -28,11 +28,13 @@ struct Input
     explicit operator bool() const { return m_valid; }
 
     char peek() const { return *m_loc; }
-    
+
+    bool status() const { return m_valid; }
     const char *begin() const { return m_begin; }
     const char *end() const { return m_end; }
     const char *loc() const { return m_loc; }
     const char *mark() const { return m_mark; }
+    string_view view() const { return { begin(), size_t(end() - begin()) }; }
     
     bool eof() const { return m_loc >= m_end; }
     bool bof() const { return m_loc == m_begin; }
@@ -80,6 +82,15 @@ struct Input
 	if (m_valid)
 	    return m_loc - m_mark;
 	return 0;
+    }
+
+    friend bool operator==(const Input& a, const Input& b)
+    {
+	return a.m_valid == b.m_valid
+	    and a.m_begin == b.m_begin
+	    and a.m_end == b.m_end
+	    and a.m_loc == b.m_loc
+	    and a.m_mark == b.m_mark;
     }
 
 private:
