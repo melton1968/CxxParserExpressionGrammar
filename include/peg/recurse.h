@@ -10,11 +10,12 @@ namespace peg
 template<class P>
 struct Recurse
 {
+    using Children = std::tuple<P>;
+    
     template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	static std::map<const char*, const char*> seeds;
-
 	auto begin = input.point();
 	auto iter = seeds.find(begin);
 	if (iter != seeds.end())
@@ -23,20 +24,22 @@ struct Recurse
 	seeds[begin] = begin;
 
 	auto best = input;
+	auto best_seed = begin;
 	while (true)
 	{
-	    auto r = Control::template match<P, Actions...>(input, states...);	    
-	    if (r and r.point() > seeds[begin])
-	    {
-		best = r;
-		seeds[begin] = r.point();
-	    }
-	    else
-	    {
-		seeds.erase(begin);
-		return best;
-	    }
+	    auto r = Control::template match<P, Actions...>(input, states...);
+	    if (not r or r.point() <= seeds[begin])
+		break;
+
+	    best = r;
+	    best_seed = seeds[begin];
+	    seeds[begin] = r.point();
 	}
+
+	seeds[begin] = best_seed;
+	// auto r = Control::template match<P, Actions...>(input, states...);
+	seeds.erase(begin);
+	return best;
     }
 };
 

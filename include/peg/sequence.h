@@ -10,6 +10,8 @@ namespace peg
 template<class P, class... Ps>
 struct Sequence
 {
+    using Children = std::tuple<P, Ps...>;
+    
     template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
@@ -36,6 +38,8 @@ struct MinSequence
 template<class P, class... Ps>
 struct Choice
 {
+    using Children = std::tuple<P, Ps...>;
+    
     template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
