@@ -68,6 +68,9 @@ struct Input
 	    and a.m_mark == b.m_mark;
     }
 
+    friend std::ostream& operator<<(std::ostream& os, const Input& input)
+    { return os << input.status() << " " << size_t(input.mark()) << " " << size_t(input.point()); }
+
 private:
     Input(bool status, const char *begin, const char *end, const char *mark, const char *point)
 	: m_status(status)
