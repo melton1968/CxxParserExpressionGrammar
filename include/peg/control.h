@@ -8,7 +8,7 @@
 namespace peg
 {
 
-template<typename Parser>
+template<class Parser>
 struct DebugAction
 {
     using Type = DebugAction<Parser>;
@@ -23,7 +23,7 @@ struct DebugAction
 
 struct BasicControl
 {
-    template<typename Parser, template<typename> typename... Actions, typename... States>
+    template<class Parser, template<class> class... Actions, class... States>
     static Input match(Input input, States&... states)
     {
 	auto p = input.point();
@@ -40,6 +40,14 @@ struct BasicControl
     {
 	throw std::runtime_error("Control::raise");
     }
+};
+
+template<class NewControl>
+struct SwitchControl
+{
+    template<class Control, class Parser, template<class> class... Actions, class... States>
+    static Input match(Input input, States&... states)
+    { return NewControl::template match<Actions...>(input, states...); }
 };
 
 

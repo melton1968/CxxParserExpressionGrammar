@@ -10,14 +10,14 @@ namespace peg
 
 struct NullAction
 {
-    template<typename... States>
+    template<class... States>
     static void apply(const peg::Input& input, States&...) { }
 };
 
-template<template<typename> typename NewAction, typename P, typename... Ps>
+template<template<class> class NewAction, class P, class... Ps>
 struct Action
 {
-    template<class Control, template<typename> typename... Actions, typename... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto r = Control::template match<P, NewAction>(input, states...);
