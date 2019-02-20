@@ -3,7 +3,6 @@
 
 #pragma once
 #include "peg/input.h"
-#include "peg/control.h"
 
 namespace peg
 {
@@ -48,14 +47,14 @@ struct NotEqualToCaseless
 template<class Match, class Next, char C, char... Cs>
 struct CharMatcher
 {
-    template<template<class> class... Actions, class... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof()) return input.failure();
 	else if (Match{}.compare(input.peek(), C)) return Match{}.success(input);
 	else if constexpr (sizeof...(Cs) == 0) return Match{}.failure(input.failure());
 	else return CharMatcher<Match, Next, Cs...>::template
-		 match<Actions...>(Next{}(input), states...);
+		 match<Control, Actions...>(Next{}(input), states...);
     }
 };
 

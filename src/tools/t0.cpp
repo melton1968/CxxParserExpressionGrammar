@@ -1,88 +1,75 @@
 // Copyright (C) 2019 by Mark Melton
 //
 
-#include <fmt/format.h>
+#include <typeindex>
 #include <stack>
+#include <fmt/format.h>
 #include "core/tool.h"
 #include "core/demangle.h"
-#include "peg/peg.h"
+#include "peg/character.h"
+#include "peg/sequence.h"
 
 using namespace peg;
 
-struct Environment
+struct MyControl
 {
-    Environment()
-	: env(10)
-    { }
-
-    template<size_t ID>
-    void push(string_view s) { env[ID].push(s); }
-
-    template<size_t ID>
-    auto top() { return env[ID].top(); }
-
-    template<size_t ID>
-    string_view pop()
+    template<typename Parser, template<typename> typename... Actions, typename... States>
+    static Input match(Input input, States&... states)
     {
-	auto r = env[ID].top();
-	env[ID].pop();
-	return r;
-    }
+	static const char *last_point{nullptr};
+	auto p = input.point();
+	cout << size_t(p) << " " << size_t(last_point) << endl;
 	
-    vector<std::stack<string_view>> env;
-};
-
-template<class P, size_t ID>
-struct MatchPush
-{
-    template<template<class> class... Actions, class... States>
-    static Input match(const Input& input, Environment& env, States&... states)
-    {
-	auto r = Control::template match<P, Actions...>(input, env, states...);
-	if (not r) return r;
-
-	env.template push<ID>(r.match());
-	return r;
-    }
-};
-
-template<class P, size_t ID>
-struct MatchPop
-{
-    template<template<class> class... Actions, class... States>
-    static Input match(const Input& input, Environment& env, States&... states)
-    {
-	auto r = Control::template match<P, Actions...>(input, env, states...);
-	if (not r) return r;
-
-	auto str = env.template top<ID>();
-	if (str != r.match())
+	if (p == last_point)
 	    return input.failure();
-	env.template pop<ID>();
+	last_point = p;
+	
+	auto r = Parser::template match<MyControl, Actions...>(input, states...);
+	r.mark(p);
+	
+	if (not r) return r;
+	(Actions<Parser>::apply(r, states...) , ...);
 	return r;
+    }
+
+    template<class T>
+    static void raise()
+    {
+	throw std::runtime_error("Control::raise");
     }
 };
 
-struct Name : OneOrMore<Range<'a','z'>> {};
-struct StartTag : Sequence<c::LessThan, MatchPush<Name,5>, c::GreaterThan> {};
-struct EndTag : Sequence<c::LessThan, c::ForwardSlash, MatchPop<Name,5>, c::GreaterThan> {};
+template<typename Parser>
+struct DebugAction
+{
+    using Type = DebugAction<Parser>;
+    template<class... States>
+    static void apply(const Input& input, States&...)
+    {
+	auto view = core::type_name<Type>();
+	cout << string(view) << ": ";
+	cout << input.match() << endl;
+    }
+};
 
-struct Content;
-struct Element : Sequence<StartTag, Content, EndTag> {};
-struct Content : Choice<Element, OneOrMore<Range<'a','z'>>> {};
+struct Expr : Or<
+    Seq<Expr, c::Plus, c::a>,
+    c::a
+    >
+{};
 
 int tool_main(int argc, const char *argv[])
 {
     core::POpt opts;
     opts.process(argc, argv);
-    cout << std::boolalpha;
 
-    for (auto input : opts.extra())
-    {
-	auto state = Environment{};
-	auto r = parse<Content, DebugAction>(input, state);
-	cout << input << ": " << (bool)r << " " << r.match() << endl;
-    }
+    cout << sizeof(typeid(Expr)) << endl;
+    cout << sizeof(std::type_index(typeid(Expr))) << endl;
+
+    string str = "a+a";
+    Input input(str);
+    auto r = MyControl::template match<Expr, DebugAction>(input);
+    cout << r.match() << endl;
     return 0;
 }
 

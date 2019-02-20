@@ -3,14 +3,13 @@
 
 #pragma once
 #include "peg/input.h"
-#include "peg/control.h"
 
 namespace peg
 {
 
 struct StartOfFile
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.bof()) return input.success();
@@ -20,7 +19,7 @@ struct StartOfFile
 
 struct StartOfLine
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.bof()) return input.success();
@@ -34,7 +33,7 @@ struct StartOfLine
 
 struct EndOfFile
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof()) return input.success();
@@ -44,7 +43,7 @@ struct EndOfFile
 
 struct EndOfLine
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof())
@@ -62,7 +61,7 @@ struct EndOfLine
 
 struct EndOfLineOrFile
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof())

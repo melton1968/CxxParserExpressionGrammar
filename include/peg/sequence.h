@@ -3,7 +3,6 @@
 
 #pragma once
 #include "peg/input.h"
-#include "peg/control.h"
 
 namespace peg
 {
@@ -11,20 +10,20 @@ namespace peg
 template<class P, class... Ps>
 struct Sequence
 {
-    template<template<class> class... Actions, class... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto r = Control::template match<P, Actions...>(input, states...);
 	if (not r) return r;
 	if constexpr (sizeof...(Ps) == 0) return r;
-	else return Sequence<Ps...>::template match<Actions...>(r, states...);
+	else return Sequence<Ps...>::template match<Control, Actions...>(r, states...);
     }
 };
 
 template<size_t N, class... Ps>
 struct MinSequence
 {
-    template<template<class> class... Actions, class... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto r = Control::template match<Sequence<Ps...>, Actions...>(input, states...);
@@ -37,13 +36,13 @@ struct MinSequence
 template<class P, class... Ps>
 struct Choice
 {
-    template<template<class> class... Actions, class... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto r = Control::template match<P, Actions...>(input, states...);
 	if (r) return r;
 	if constexpr (sizeof...(Ps) == 0) return input.failure();
-	else return Choice<Ps...>::template match<Actions...>(input, states...);
+	else return Choice<Ps...>::template match<Control, Actions...>(input, states...);
     }
 };
 

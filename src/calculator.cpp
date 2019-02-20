@@ -153,7 +153,8 @@ int tool_main(int argc, const char *argv[])
     for (const auto& expr : opts.extra())
     {
 	Computation c{ trace };
-	auto r = parse<Grammar,Calculator>(expr, c);
+	Input input{expr};
+	auto r = parse<Grammar,Calculator>(input, c);
 	if (not r)
 	    cout << "Failed to parse expression: " << expr << endl;
 	else

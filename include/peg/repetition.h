@@ -3,7 +3,6 @@
 
 #pragma once
 #include "peg/input.h"
-#include "peg/control.h"
 #include "peg/sequence.h"
 
 namespace peg
@@ -12,21 +11,23 @@ namespace peg
 template<size_t N, size_t M, class... Ps>
 struct Repetition
 {
-    template<template<class> class... Actions, class... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
-    { return Repetition<N, M, Sequence<Ps...>>::template match<Actions...>(input, states...); }
+    {
+	return Repetition<N, M, Sequence<Ps...>>::template match<Control, Actions...>
+	    (input, states...); }
 };
 
 template<size_t N, size_t M, class P>
 struct Repetition<N, M, P>
 {
-    template<template<class> class... Actions, class... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	size_t count = 0;
 	auto last_r = input;
 	Input r = input;
-	while (count < M and (r = P::template match<Actions...>(last_r, states...)))
+	while (count < M and (r = P::template match<Control, Actions...>(last_r, states...)))
 	{
 	    ++count;
 	    last_r = r;

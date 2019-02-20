@@ -3,7 +3,6 @@
 
 #pragma once
 #include "peg/input.h"
-#include "peg/control.h"
 
 namespace peg
 {
@@ -11,7 +10,7 @@ namespace peg
 template<typename P, typename Q, bool ConsumeP = true>
 struct Until
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	Input in = input;

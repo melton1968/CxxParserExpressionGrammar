@@ -3,7 +3,6 @@
 
 #pragma once
 #include "peg/input.h"
-#include "peg/control.h"
 #include "peg/sequence.h"
 
 namespace peg
@@ -18,13 +17,13 @@ struct NullAction
 template<template<typename> typename NewAction, typename P, typename... Ps>
 struct Action
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<typename> typename... Actions, typename... States>
     static Input match(const Input& input, States&... states)
     {
 	auto r = Control::template match<P, NewAction>(input, states...);
 	if (not r) return r;
 	if constexpr (sizeof...(Ps) == 0) return r;
-	else return Sequence<Ps...>::template match<NewAction>(r, states...);
+	else return Sequence<Ps...>::template match<Control, NewAction>(r, states...);
     }
 };
 

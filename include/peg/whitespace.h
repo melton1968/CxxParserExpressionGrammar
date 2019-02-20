@@ -9,7 +9,7 @@ namespace peg
 
 struct WhiteSpace
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto p = input.point();
@@ -21,7 +21,7 @@ struct WhiteSpace
 
 struct RequiredWhiteSpace
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto p = input.point();
@@ -34,7 +34,7 @@ struct RequiredWhiteSpace
 
 struct WhiteSpaceThruEndOfLine
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto p = input.point();
@@ -51,7 +51,7 @@ struct WhiteSpaceThruEndOfLine
 
 struct WhiteSpaceExceptEndOfLine
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto p = input.point();
@@ -63,7 +63,7 @@ struct WhiteSpaceExceptEndOfLine
 
 struct RequiredWhiteSpaceExceptEndOfLine
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	auto p = input.point();

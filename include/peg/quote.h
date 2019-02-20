@@ -3,7 +3,6 @@
 
 #pragma once
 #include "peg/input.h"
-#include "peg/control.h"
 
 namespace peg
 {
@@ -11,7 +10,7 @@ namespace peg
 template<char Q = '\'', char E = '\\'>
 struct QuotedString
 {
-    template<template<typename> typename... Actions, typename... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, States&... states)
     {
 	if (input.eof()) return input.failure();

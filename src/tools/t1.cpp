@@ -35,7 +35,7 @@ struct Environment
 template<class P, size_t ID>
 struct MatchPush
 {
-    template<template<class> class... Actions, class... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, Environment& env, States&... states)
     {
 	auto r = Control::template match<P, Actions...>(input, env, states...);
@@ -49,7 +49,7 @@ struct MatchPush
 template<class P, size_t ID>
 struct MatchPop
 {
-    template<template<class> class... Actions, class... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(const Input& input, Environment& env, States&... states)
     {
 	auto r = Control::template match<P, Actions...>(input, env, states...);

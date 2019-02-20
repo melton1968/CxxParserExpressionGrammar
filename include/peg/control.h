@@ -21,13 +21,13 @@ struct DebugAction
     }
 };
 
-struct Control
+struct BasicControl
 {
     template<typename Parser, template<typename> typename... Actions, typename... States>
     static Input match(Input input, States&... states)
     {
 	auto p = input.point();
-	auto r = Parser::template match<Actions...>(input, states...);
+	auto r = Parser::template match<BasicControl, Actions...>(input, states...);
 	r.mark(p);
 	
 	if (not r) return r;
