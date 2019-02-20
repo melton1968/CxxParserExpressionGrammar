@@ -16,6 +16,7 @@
 #include "peg/quote.h"
 #include "peg/repetition.h"
 #include "peg/range.h"
+#include "peg/recurse.h"
 #include "peg/sequence.h"
 #include "peg/succeed.h"
 #include "peg/until.h"
