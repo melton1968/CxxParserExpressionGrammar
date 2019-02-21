@@ -7,18 +7,8 @@
 #include "core/tool.h"
 #include "core/demangle.h"
 #include "core/mp/mp.h"
+#include "core/string/replace.h"
 #include "peg/peg.h"
-
-std::string replace_all(std::string str, const std::string& from, const std::string& to) {
-    size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos)
-    {
-        str.replace(start_pos, from.length(), to);
-        start_pos += to.length();
-    }
-    return str;
-}
-
 
 using namespace peg;
 
@@ -169,9 +159,9 @@ struct print_type
     static void apply()
     {
 	auto str = core::type_name<Head>();
-	str = replace_all(str, "peg::", "");
-	str = replace_all(str, "detail::", "");
-	str = replace_all(str, "character::", "");
+	str = core::replace_all(str, "peg::", "");
+	str = core::replace_all(str, "detail::", "");
+	str = core::replace_all(str, "character::", "");
 	cout << "P= " << str << endl;
 	if constexpr (not core::mp::contains_v<Head, Exclude> and core::mp::size_v<Children> > 0)
 			 print_type<Children, NewExclude>::apply();
