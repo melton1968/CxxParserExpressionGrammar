@@ -3,27 +3,27 @@
 
 #include <fmt/format.h>
 #include "core/tool.h"
-#include "core/demangle.h"
-#include "core/string/replace.h"
+#include "core/mp/mp.h"
 #include "peg/peg.h"
 #include "peg/expr/expr.h"
 
 using namespace peg;
+namespace mp = core::mp;
 
 struct Number : Range<'0','9'> {};
 struct Numbers : OneOrMore<Range<'0','9'>> {};
 
 struct Fact;
 struct Fact : Or<
-    Seq<Number, c::Multiply, Number>,
-    Seq<Number, c::Divide, Number>,
+    Seq<Recurse<Fact>, c::Multiply, Number>,
+    Seq<Recurse<Fact>, c::Divide, Number>,
     Number>
 {};
 
 struct Expr;
 struct Expr : Or<
-    Seq<Expr, c::Plus, Fact>,
-    Seq<Expr, c::Minus, Fact>,
+    Seq<Recurse<Expr>, c::Plus, Fact>,
+    Seq<Recurse<Expr>, c::Minus, Fact>,
     Fact>
 {};
 
@@ -33,14 +33,8 @@ int tool_main(int argc, const char *argv[])
     opts.process(argc, argv);
 
     {
-	struct e;
-	struct e :  Or<
-	    Seq<e, c::Multiply, Number>,
-	    Seq<Number, c::Divide, Number>,
-	    Number>
-	{};
-	
-	expr::apply_rt<expr::printer, std::tuple<e>>::apply(cout);
+	[[maybe_unused]] expr::check_recursion_t<Expr> ignore;
+	expr::apply_rt<expr::printer, std::tuple<Expr>>::apply(cout);
     }
 
     return 0;
