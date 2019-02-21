@@ -18,6 +18,9 @@ set(TESTS
   must
   number
   number_generative
+  expr/apply
+  expr/apply_rt
+  expr/get_children
   quote
   range
   repetition
