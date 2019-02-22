@@ -24,6 +24,17 @@ struct Node
     Children children;
 };
 
+void print(Node::Ptr& node, size_t level = 0)
+{
+    cout << " ";
+    for (size_t i = 1; i < level; ++i)
+	cout << "   |";
+    cout << "   ";
+    cout << node->content << endl;
+    for (auto& n : node->children)
+	print(n, level+1);
+}
+
 struct Tree
 {
     std::stack<Node::Ptr> nodes;
@@ -66,6 +77,13 @@ requires (T::IsLeftRecursionParser == true)
 struct ParseTreeAction<T> : ParseTreeAction<void>
 {
     using Base = ParseTreeAction<void>;
+    using Nodes = std::stack<Node::Ptr>;
+
+    static Nodes& nodes()
+    {
+	static Nodes static_nodes;
+	return static_nodes;
+    }
     
     static void start(const Input& input, Tree& pt)
     { Base::start(input, pt); }
@@ -74,14 +92,34 @@ struct ParseTreeAction<T> : ParseTreeAction<void>
     { Base::failure(input, pt); }
     
     static void success(const Input& input, Tree& pt)
+    { Base::success(input, pt); }
+
+    static void begin_recursion(const Input& input, Tree& pt)
+    { }
+
+    static void success_recursion(const Input& input, Tree& pt)
     {
-	cout << "left recursion success: " << input.match() << endl;
-	Base::success(input, pt);
+	cout << pt.nodes.top()->children.size() << endl;
+
+	auto n = std::move(pt.nodes.top()->children.back());
+	pt.nodes.top()->children.pop_back();
+	nodes().emplace(std::move(n));
     }
 
-    static void left_recursion_complete(const Input& input, Tree& pt)
+    static void failure_recursion(const Input& input, Tree& pt)
     {
-	cout << "left recursion complete: " << input.match() << endl;
+	pt.nodes.top()->children.pop_back();
+    }
+
+    static void end_recursion(const Input& input, Tree& pt)
+    {
+	cout << pt.nodes.top()->children.size() << endl;
+	while (nodes().size() > 0)
+	{
+	    auto& n = nodes().top();
+	    pt.nodes.top()->children.emplace_back(std::move(n));
+	    nodes().pop();
+	}
     }
 };
 
@@ -100,13 +138,6 @@ struct Expr1 : Or<
     c::a
     >
 {};
-
-void print(peg::Node::Ptr& node, size_t level = 0)
-{
-    cout << string(4 * level, ' ') << node->content << endl;
-    for (auto& n : node->children)
-	print(n, level+1);
-}
 
 int tool_main(int argc, const char *argv[])
 {

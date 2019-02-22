@@ -11,6 +11,7 @@ template<class P>
 struct LeftRecursion
 {
     static constexpr bool IsLeftRecursionParser = true;
+    using Self = LeftRecursion<P>;
     using Children = std::tuple<P>;
     
     template<class Control, template<class> class... Actions, class... States>
@@ -23,25 +24,29 @@ struct LeftRecursion
 	    return input.with_status(iter->second != begin, iter->second - begin);
 
 	seeds[begin] = begin;
-
-	auto best = input;
-	auto best_seed = begin;
-	while (true)
+	(Actions<Self>::begin_recursion(input, states...), ...);
+	
+	auto longest = input;
+	while(true)
 	{
+	    seeds[begin] = longest.point();
+	    
 	    auto r = Control::template match<P, Actions...>(input, states...);
-	    if (not r or r.point() <= seeds[begin])
+	    if (r and r.point() > seeds[begin])
+	    {
+		longest = r;
+		(Actions<Self>::success_recursion(longest, states...), ...);
+		seeds[begin] = longest.point();
+	    }
+	    else
+	    {
+		(Actions<Self>::failure_recursion(r, states...), ...);
 		break;
-
-	    best = r;
-	    best_seed = seeds[begin];
-	    seeds[begin] = r.point();
+	    }
 	}
 
-	seeds[begin] = best_seed;
-	// auto r = Control::template match<P, Actions...>(input, states...);
-	seeds.erase(begin);
-	(Actions<LeftRecursion<P>>::left_recursion_complete(best, states...), ...);
-	return best;
+	(Actions<LeftRecursion<P>>::end_recursion(longest, states...), ...);
+	return longest;
     }
 };
 
