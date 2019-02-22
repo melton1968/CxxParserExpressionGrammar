@@ -105,13 +105,13 @@ private:
     Data m_data;
 };
 
-template<typename Rule>
-struct Calculator : NullAction {};
+template<class Rule>
+struct Calculator : NullAction<Rule> {};
 
 template<>
-struct Calculator<Number>
+struct Calculator<Number> : NullAction<Number>
 {
-    static void apply(const Input& input, Computation& c)
+    static void success(const Input& input, Computation& c)
     {
 	auto n = core::lexical_cast<Integer>(input.match());
 	c.push(n);
@@ -119,25 +119,25 @@ struct Calculator<Number>
 };
 
 template<>
-struct Calculator<Infix>
+struct Calculator<Infix> : NullAction<Infix>
 {
-    static void apply(const Input& input, Computation& c)
+    static void success(const Input& input, Computation& c)
     {
 	c.push_infix(input.match()[0]);
     }
 };
 
 template<>
-struct Calculator<c::OpenParen>
+struct Calculator<c::OpenParen> : NullAction<c::OpenParen>
 {
-    static void apply(const Input&, Computation& c)
+    static void success(const Input&, Computation& c)
     { c.open(); }
 };
 
 template<>
-struct Calculator<c::CloseParen>
+struct Calculator<c::CloseParen> : NullAction<c::CloseParen>
 {
-    static void apply(const Input&, Computation& c)
+    static void success(const Input&, Computation& c)
     { c.close(); }
 };
 

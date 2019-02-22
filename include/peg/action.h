@@ -8,10 +8,14 @@
 namespace peg
 {
 
+template<class Parser>
 struct NullAction
 {
-    template<class... States>
-    static void apply(const peg::Input& input, States&...) { }
+    template<class... States> static void start(Input, States&&...) {}
+    template<class... States> static void success(Input, States&&...) {}
+    template<class... States> static void failure(Input, States&&...) {}
+    template<class... States> static bool validate(Input, States&&...) { return true;}
+    template<class... States> static void left_recusion_complete(Input, States&&...) {}
 };
 
 template<template<class> class NewAction, class P, class... Ps>

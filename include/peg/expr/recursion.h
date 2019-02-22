@@ -25,7 +25,7 @@ struct recursion
 {
     using head = mp::head_t<T>;
     static constexpr bool recursing = mp::contains_v<head,L>;
-    static_assert(not recursing or mp::is_same_template<P,Recurse>::value);
+    static_assert(not recursing or mp::is_same_template<P,LeftRecursion>::value);
     
     using maybe_children = mp::if_ct<recursing, mp::list<>, expr::get_children_t<head>>;
 

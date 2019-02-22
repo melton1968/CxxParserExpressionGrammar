@@ -3,17 +3,18 @@
 
 #pragma once
 #include "core/demangle.h"
+#include "peg/action.h"
 #include "peg/input.h"
 
 namespace peg
 {
 
 template<class Parser>
-struct DebugAction
+struct DebugAction : NullAction<Parser>
 {
     using Type = DebugAction<Parser>;
     template<class... States>
-    static void apply(const Input& input, States&...)
+    static void success(const Input& input, States&&...)
     {
 	auto view = core::type_name<Type>();
 	cout << string(view) << ": ";
@@ -23,16 +24,22 @@ struct DebugAction
 
 struct BasicControl
 {
+    using Self = BasicControl;
     template<class Parser, template<class> class... Actions, class... States>
-    static Input match(Input input, States&... states)
+    static Input match(Input input, States&&... states)
     {
-	auto p = input.point();
-	auto r = Parser::template match<BasicControl, Actions...>(input, states...);
-	r.mark(p);
+	(Actions<Parser>::start(input, states...) , ...);
 	
-	if (not r) return r;
-	(Actions<Parser>::apply(r, states...) , ...);
-	return r;
+	auto r = Parser::template match<Self, Actions...>(input, states...);
+	r.mark(input.point());
+
+	bool valid = (Actions<Parser>::validate(r, states...) and ...);
+
+	auto final_r = valid ? r : input.failure();
+	if (final_r) (Actions<Parser>::success(r, states...) , ...);
+	else (Actions<Parser>::failure(final_r, states...), ...);
+	
+	return final_r;
     }
 
     template<class T>

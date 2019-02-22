@@ -15,15 +15,15 @@ struct Numbers : OneOrMore<Range<'0','9'>> {};
 
 struct Fact;
 struct Fact : Or<
-    Seq<Recurse<Fact>, c::Multiply, Number>,
-    Seq<Recurse<Fact>, c::Divide, Number>,
+    Seq<LeftRecursion<Fact>, c::Multiply, Number>,
+    Seq<LeftRecursion<Fact>, c::Divide, Number>,
     Number>
 {};
 
 struct Expr;
 struct Expr : Or<
-    Seq<Recurse<Expr>, c::Plus, Fact>,
-    Seq<Recurse<Expr>, c::Minus, Fact>,
+    Seq<LeftRecursion<Expr>, c::Plus, Fact>,
+    Seq<LeftRecursion<Expr>, c::Minus, Fact>,
     Fact>
 {};
 

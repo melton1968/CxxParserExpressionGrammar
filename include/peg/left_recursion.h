@@ -8,8 +8,9 @@ namespace peg
 {
 
 template<class P>
-struct Recurse
+struct LeftRecursion
 {
+    static constexpr bool IsLeftRecursionParser = true;
     using Children = std::tuple<P>;
     
     template<class Control, template<class> class... Actions, class... States>
@@ -39,6 +40,7 @@ struct Recurse
 	seeds[begin] = best_seed;
 	// auto r = Control::template match<P, Actions...>(input, states...);
 	seeds.erase(begin);
+	(Actions<LeftRecursion<P>>::left_recursion_complete(best, states...), ...);
 	return best;
     }
 };
