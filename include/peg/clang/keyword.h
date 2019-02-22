@@ -3,104 +3,116 @@
 
 #pragma once
 #include "peg/peg.h"
+#include "peg/string.h"
+#include "peg/keyword.h"
+#include "peg/clang/identifier.h"
 
 // N1570
 //
 namespace peg::clang
 {
 
-using KeywordAuto = String<'a', 'u', 't', 'o'>;
-using KeywordBreak = String<'b', 'r', 'e', 'a', 'k'>;
-using KeywordCase = String<'c', 'a', 's', 'e'>;
-using KeywordChar = String<'c', 'h', 'a', 'r'>;
-using KeywordConst = String<'c', 'o', 'n', 's', 't'>;
-using KeywordContinue = String<'c', 'o', 'n', 't', 'i', 'n', 'u', 'e'>;
-using KeywordDefault = String<'d', 'e', 'f', 'a', 'u', 'l', 't'>;
-using KeywordDo = String<'d', 'o'>;
-using KeywordDouble = String<'d', 'o', 'u', 'b', 'l', 'e'>;
-using KeywordElse = String<'e', 'l', 's', 'e'>;
-using KeywordEnum = String<'e', 'n', 'u', 'm'>;
-using KeywordExtern = String<'e', 'x', 't', 'e', 'r', 'n'>;
-using KeywordFloat = String<'f', 'l', 'o', 'a', 't'>;
-using KeywordFor = String<'f', 'o', 'r'>;
-using KeywordGoto = String<'g', 'o', 't', 'o'>;
-using KeywordIf = String<'i', 'f'>;
-using KeywordInline = String<'i', 'n', 'l', 'i', 'n', 'e'>;
-using KeywordInt = String<'i', 'n', 't'>;
-using KeywordLong = String<'l', 'o', 'n', 'g'>;
-using KeywordRegister = String<'r', 'e', 'g', 'i', 's', 't', 'e', 'r'>;
-using KeywordRestrict = String<'r', 'e', 's', 't', 'r', 'i', 'c', 't'>;
-using KeywordReturn = String<'r', 'e', 't', 'u', 'r', 'n'>;
-using KeywordShort = String<'s', 'h', 'o', 'r', 't'>;
-using KeywordSigned = String<'s', 'i', 'g', 'n', 'e', 'd'>;
-using KeywordSizeof = String<'s', 'i', 'z', 'e', 'o', 'f'>;
-using KeywordStatic = String<'s', 't', 'a', 't', 'i', 'c'>;
-using KeywordStruct = String<'s', 't', 'r', 'u', 'c', 't'>;
-using KeywordSwitch = String<'s', 'w', 'i', 't', 'c', 'h'>;
-using KeywordTypedef = String<'t', 'y', 'p', 'e', 'd', 'e', 'f'>;
-using KeywordUnion = String<'u', 'n', 'i', 'o', 'n'>;
-using KeywordUnsigned = String<'u', 'n', 's', 'i', 'g', 'n', 'e', 'd'>;
-using KeywordVoid = String<'v', 'o', 'i', 'd'>;
-using KeywordVolatile = String<'v', 'o', 'l', 'a', 't', 'i', 'l', 'e'>;
-using KeywordWhile = String<'w', 'h', 'i', 'l', 'e'>;
-using KeywordAlignas = String<'_', 'A', 'l', 'i', 'g', 'n', 'a', 's'>;
-using KeywordAlignof = String<'_', 'A', 'l', 'i', 'g', 'n', 'o', 'f'>;
-using KeywordAtomic = String<'_', 'A', 't', 'o', 'm', 'i', 'c'>;
-using KeywordBool = String<'_', 'B', 'o', 'o', 'l'>;
-using KeywordComplex = String<'_', 'C', 'o', 'm', 'p', 'l', 'e', 'x'>;
-using KeywordGeneric = String<'_', 'G', 'e', 'n', 'e', 'r', 'i', 'c'>;
-using KeywordImaginary = String<'_', 'I', 'm', 'a', 'g', 'i', 'n', 'a', 'r', 'y'>;
-using KeywordNoReturn = String<'_', 'N', 'o', 'r', 'e', 't', 'u', 'r', 'n'>;
-using KeywordStaticAssert = String<'_', 'S', 't', 'a', 't', 'i', 'c', '_', 'a', 's', 's', 'e', 'r', 't'>;
-using KeywordThreadLocal = String<'_', 'T', 'h', 'r', 'e', 'a', 'd', '_', 'l', 'o', 'c', 'a', 'l'>;
+#define PEG_CLANG_KEYWORD(S)					\
+    namespace str {						\
+    PEG_STR(S);							\
+    };								\
+    namespace k {						\
+    using _ ## S = Keyword<str::_ ## S, IdentifierDigit>;	\
+    };								\
+    
+
+PEG_CLANG_KEYWORD(auto);
+PEG_CLANG_KEYWORD(break);
+PEG_CLANG_KEYWORD(case);
+PEG_CLANG_KEYWORD(char);
+PEG_CLANG_KEYWORD(const);
+PEG_CLANG_KEYWORD(continue);
+PEG_CLANG_KEYWORD(default);
+PEG_CLANG_KEYWORD(do);
+PEG_CLANG_KEYWORD(double);
+PEG_CLANG_KEYWORD(else);
+PEG_CLANG_KEYWORD(enum);
+PEG_CLANG_KEYWORD(extern);
+PEG_CLANG_KEYWORD(float);
+PEG_CLANG_KEYWORD(for);
+PEG_CLANG_KEYWORD(goto);
+PEG_CLANG_KEYWORD(if);
+PEG_CLANG_KEYWORD(inline);
+PEG_CLANG_KEYWORD(int);
+PEG_CLANG_KEYWORD(long);
+PEG_CLANG_KEYWORD(register);
+PEG_CLANG_KEYWORD(restrict);
+PEG_CLANG_KEYWORD(return);
+PEG_CLANG_KEYWORD(short);
+PEG_CLANG_KEYWORD(signed);
+PEG_CLANG_KEYWORD(sizeof);
+PEG_CLANG_KEYWORD(static);
+PEG_CLANG_KEYWORD(struct);
+PEG_CLANG_KEYWORD(switch);
+PEG_CLANG_KEYWORD(typedef);
+PEG_CLANG_KEYWORD(union);
+PEG_CLANG_KEYWORD(unsigned);
+PEG_CLANG_KEYWORD(void);
+PEG_CLANG_KEYWORD(volatile);
+PEG_CLANG_KEYWORD(while);
+PEG_CLANG_KEYWORD(_Alignas);
+PEG_CLANG_KEYWORD(_Alignof);
+PEG_CLANG_KEYWORD(_Atomic);
+PEG_CLANG_KEYWORD(_Bool);
+PEG_CLANG_KEYWORD(_Complex);
+PEG_CLANG_KEYWORD(_Generic);
+PEG_CLANG_KEYWORD(_Imaginary);
+PEG_CLANG_KEYWORD(_Noreturn);
+PEG_CLANG_KEYWORD(_Static_assert);
+PEG_CLANG_KEYWORD(_Thread_local);
 
 // 6.4.1 Keywords
 //
 struct Keyword : Or<
-    KeywordAuto,
-    KeywordBreak,
-    KeywordCase,
-    KeywordChar,
-    KeywordConst,
-    KeywordContinue,
-    KeywordDefault,
-    KeywordDouble,
-    KeywordDo,
-    KeywordElse,
-    KeywordEnum,
-    KeywordExtern,
-    KeywordFloat,
-    KeywordFor,
-    KeywordGoto,
-    KeywordIf,
-    KeywordInline,
-    KeywordInt,
-    KeywordLong,
-    KeywordRegister,
-    KeywordRestrict,
-    KeywordReturn,
-    KeywordShort,
-    KeywordSigned,
-    KeywordSizeof,
-    KeywordStatic,
-    KeywordStruct,
-    KeywordSwitch,
-    KeywordTypedef,
-    KeywordUnion,
-    KeywordUnsigned,
-    KeywordVoid,
-    KeywordVolatile,
-    KeywordWhile,
-    KeywordAlignas,
-    KeywordAlignof,
-    KeywordAtomic,
-    KeywordBool,
-    KeywordComplex,
-    KeywordGeneric,
-    KeywordImaginary,
-    KeywordNoReturn,
-    KeywordStaticAssert,
-    KeywordThreadLocal>
+    k::_auto,
+    k::_break,
+    k::_case,
+    k::_char,
+    k::_const,
+    k::_continue,
+    k::_default,
+    k::_double,
+    k::_do,
+    k::_else,
+    k::_enum,
+    k::_extern,
+    k::_float,
+    k::_for,
+    k::_goto,
+    k::_if,
+    k::_inline,
+    k::_int,
+    k::_long,
+    k::_register,
+    k::_restrict,
+    k::_return,
+    k::_short,
+    k::_signed,
+    k::_sizeof,
+    k::_static,
+    k::_struct,
+    k::_switch,
+    k::_typedef,
+    k::_union,
+    k::_unsigned,
+    k::_void,
+    k::_volatile,
+    k::_while,
+    k::__Alignas,
+    k::__Alignof,
+    k::__Atomic,
+    k::__Bool,
+    k::__Complex,
+    k::__Generic,
+    k::__Imaginary,
+    k::__Noreturn,
+    k::__Static_assert,
+    k::__Thread_local>
 {};
 
 }; // end peg::clang

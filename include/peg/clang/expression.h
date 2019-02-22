@@ -31,7 +31,7 @@ struct AssignmentExpression;
 
 struct GenericAssociation : Or<
     Seq<TypeName, c::Colon, AssignmentExpression>,
-    Seq<KeywordDefault, c::Colon, AssignmentExpression>>
+    Seq<k::_default, c::Colon, AssignmentExpression>>
 {};
 
 struct GenericAssocList : Or<
@@ -40,7 +40,7 @@ struct GenericAssocList : Or<
 {};
 
 struct GenericSelection : Seq<
-    KeywordGeneric,
+    k::__Generic,
     c::OpenParen,
     AssignmentExpression,
     c::Comma,
@@ -87,9 +87,9 @@ struct UnaryExpression : Or<
     Seq<s::PlusPlus, UnaryExpression>,
     Seq<s::MinusMinus, UnaryExpression>,
     Seq<UnaryOperator, CastExpression>,
-    Seq<KeywordSizeof, UnaryExpression>,
-    Seq<KeywordSizeof, c::OpenParen, TypeName, c::CloseParen>,
-    Seq<KeywordAlignof, c::OpenParen, TypeName, c::CloseParen>>
+    Seq<k::_sizeof, UnaryExpression>,
+    Seq<k::_sizeof, c::OpenParen, TypeName, c::CloseParen>,
+    Seq<k::__Alignof, c::OpenParen, TypeName, c::CloseParen>>
 {};
 
 // 6.5.4 Cast operators
@@ -218,12 +218,12 @@ struct ConstantExpression : ConditionalExpression {};
 // 6.7.1 Storage class specifiers
 //
 struct StorageClassSpecifier : Or<
-    KeywordTypedef,
-    KeywordExtern,
-    KeywordStatic,
-    KeywordThreadLocal,
-    KeywordAuto,
-    KeywordRegister>
+    k::_typedef,
+    k::_extern,
+    k::_static,
+    k::__Thread_local,
+    k::_auto,
+    k::_register>
 {};
 
 // 6.7.2.1 Structure and union specifiers.
@@ -253,7 +253,7 @@ struct StructDeclaration : Or<
     StaticAssertDeclaration>
 {};
 
-struct StructOrUnion : Or<KeywordStruct, KeywordUnion> {};
+struct StructOrUnion : Or<k::_struct, k::_union> {};
 struct StructDeclarationList : OneOrMore<StructDeclaration> {};
 
 struct StructOrUnionSpecifier : Or<
@@ -271,31 +271,31 @@ struct EnumeratorList : Or<
 {};
 
 struct EnumSpecifier : Or<
-    Seq<KeywordEnum, Maybe<Identifier>, c::OpenCurly, EnumeratorList, Maybe<c::Comma>,
+    Seq<k::_enum, Maybe<Identifier>, c::OpenCurly, EnumeratorList, Maybe<c::Comma>,
 	c::CloseCurly>,
-    Seq<KeywordEnum, Identifier>>
+    Seq<k::_enum, Identifier>>
 {};
 
 // 6.7.2.4 Atomic type specifier
 //
-struct AtomicTypeSpecifier : Seq<KeywordAtomic, c::OpenParen, TypeName, c::CloseParen> {};
+struct AtomicTypeSpecifier : Seq<k::__Atomic, c::OpenParen, TypeName, c::CloseParen> {};
 
 // 6.7.2 Type specifiers
 //
 struct TypedefName;
 
 struct TypeSpecifier : Or<
-    KeywordVoid,
-    KeywordChar,
-    KeywordShort,
-    KeywordInt,
-    KeywordLong,
-    KeywordFloat,
-    KeywordDouble,
-    KeywordSigned,
-    KeywordUnsigned,
-    KeywordBool,
-    KeywordComplex,
+    k::_void,
+    k::_char,
+    k::_short,
+    k::_int,
+    k::_long,
+    k::_float,
+    k::_double,
+    k::_signed,
+    k::_unsigned,
+    k::__Bool,
+    k::__Complex,
     AtomicTypeSpecifier,
     StructOrUnionSpecifier,
     EnumSpecifier,
@@ -305,21 +305,21 @@ struct TypeSpecifier : Or<
 // 6.7.3 Type qualifier
 //
 struct TypeQualifier : Or<
-    KeywordConst,
-    KeywordRestrict,
-    KeywordVolatile,
-    KeywordAtomic>
+    k::_const,
+    k::_restrict,
+    k::_volatile,
+    k::__Atomic>
 {};
 
 // 6.7.4 Function specifier
 //
-struct FunctionSpecifier : Or<KeywordInline, KeywordNoReturn> {};
+struct FunctionSpecifier : Or<k::_inline, k::__Noreturn> {};
 
 // 6.7.5 Alignment specifier
 //
 struct AlignmentSpecifier : Or<
-    Seq<KeywordAlignas, c::OpenParen, TypeName, c::CloseParen>,
-    Seq<KeywordAlignas, c::OpenParen, ConstantExpression, c::CloseParen>>
+    Seq<k::__Alignas, c::OpenParen, TypeName, c::CloseParen>,
+    Seq<k::__Alignas, c::OpenParen, ConstantExpression, c::CloseParen>>
 {};
 
 
@@ -341,9 +341,9 @@ struct DirectDeclarator : Or<
     Seq<c::OpenParen, Declarator, c::CloseParen>,
     Seq<DirectDeclarator, c::OpenBracket, Maybe<TypeQualifierList>, Maybe<AssignmentExpression>,
 	c::CloseBracket>,
-    Seq<DirectDeclarator, c::OpenBracket, KeywordStatic, Maybe<TypeQualifierList>,
+    Seq<DirectDeclarator, c::OpenBracket, k::_static, Maybe<TypeQualifierList>,
 	AssignmentExpression, c::CloseBracket>,
-    Seq<DirectDeclarator, c::OpenBracket, TypeQualifierList, KeywordStatic,
+    Seq<DirectDeclarator, c::OpenBracket, TypeQualifierList, k::_static,
 	AssignmentExpression, c::CloseBracket>,
     Seq<DirectDeclarator, c::OpenBracket, Maybe<TypeQualifierList>, c::Star, c::CloseBracket>,
     Seq<DirectDeclarator, c::OpenParen, TypeQualifierList, c::CloseParen>,
@@ -379,10 +379,10 @@ struct DirectAbstractDeclarator : Or<
     Seq<c::OpenParen, AbstractDeclarator, c::CloseParen>,
     Seq<Maybe<DirectAbstractDeclarator>, c::OpenBracket, Maybe<TypeQualifierList>,
 	Maybe<AssignmentExpression>, c::CloseParen>,
-    Seq<Maybe<DirectAbstractDeclarator>, c::OpenBracket, KeywordStatic, Maybe<TypeQualifierList>,
+    Seq<Maybe<DirectAbstractDeclarator>, c::OpenBracket, k::_static, Maybe<TypeQualifierList>,
 	AssignmentExpression, c::CloseBracket>,
     Seq<Maybe<DirectAbstractDeclarator>, c::OpenBracket, TypeQualifierList,
-	KeywordStatic, AssignmentExpression, c::CloseBracket>,
+	k::_static, AssignmentExpression, c::CloseBracket>,
     Seq<Maybe<DirectAbstractDeclarator>, c::OpenBracket, c::Star, c::CloseBracket>,
     Seq<Maybe<DirectAbstractDeclarator>, c::OpenParen, Maybe<ParameterTypeList>, c::CloseParen>>
 {};
@@ -427,7 +427,7 @@ struct Initializer : Or<
 // 6.7.10 Static assertions
 //
 struct StaticAssertDeclaration : Seq<
-    KeywordStaticAssert,
+    k::__Static_assert,
     c::OpenParen,
     ConstantExpression,
     c::Comma,

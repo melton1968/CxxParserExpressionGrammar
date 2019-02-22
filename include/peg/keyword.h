@@ -3,7 +3,8 @@
 
 #pragma once
 #include "peg/input.h"
-#include "peg/control.h"
+#include "peg/at.h"
+#include "peg/sequence.h"
 
 namespace peg
 {
@@ -13,7 +14,3 @@ using Keyword = Sequence<P, NotAt<Q>>;
 
 }; // end peg
 
-#define PEG_MAKE_KEYWORD(s)						\
-    struct struct_ ## s { constexpr static const char s[] = #s; };	\
-    using String_ ## s = String<struct_ ## s::s>;			\
-    using Keyword_ ## s = peg::Keyword<String_ ## s, IdentifierRest>;

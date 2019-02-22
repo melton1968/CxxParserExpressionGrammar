@@ -4,54 +4,40 @@
 #include <fmt/format.h>
 #include "core/tool.h"
 #include "core/demangle.h"
-#include "core/mp/mp.h"
-#include "core/tuple/apply.h"
 
-struct Or {};
-struct And {};
-struct Plus {};
-struct Minus {};
-struct CharA {};
-struct CharB {};
 
-using namespace core;
+#define K(str)							\
+    struct K_ ## str						\
+    {								\
+	static constexpr std::array<char,5> str = { #str };	\
+	static constexpr char get(size_t i) { return str[i]; }	\
+	static constexpr size_t size() { return str.size(); }	\
+    };								\
+    
+    
+K(abcd);
 
-using T0 = mp::list<Or, mp::list<And, mp::list<CharA,Plus,CharB>>, mp::list<CharA,Minus,CharB>>;
 
-template<template<class...> class F, class T>
-struct apply;
-
-template<template<class...> class F>
-struct apply<F, mp::list<>>
+template<class S>
+struct matcher
 {
-    using type = mp::list<>;
+    static bool match(string_view s)
+    {
+	for (size_t i = 0; i < S::size(); ++i)
+	    if (S::get(i) != s[i])
+		return false;
+	return true;
+    }
 };
-
-template<template<class...> class F, class T>
-struct apply
-{
-    using Head = mp::head_t<T>;
-    using Tail = mp::tail_t<T>;
-    using type = mp::push_front_t<F<Head>, typename apply<F, Tail>::type>;
-};
-
-template<class T>
-struct foo { using type = T; };
-
-template<class... Ts>
-struct foo<core::mp::list<Ts...>>
-{ using type = std::tuple<Ts...>; };
-
-using T2 = typename apply<foo, T0>::type;
 
 int tool_main(int argc, const char *argv[])
 {
     core::POpt opts;
     opts.process(argc, argv);
 
-    cout << type_name<T0>() << endl;
-    cout << type_name<T2>() << endl;
-    
+    matcher<K_abcd> m;
+    cout << m.match("abc") << endl;
+    cout << m.match("abcd") << endl;
     return 0;
 }
 

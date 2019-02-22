@@ -15,6 +15,7 @@ set(TESTS
   clang/keyword
   clang/string
   identifier
+  keyword
   must
   number
   number_generative
@@ -25,6 +26,7 @@ set(TESTS
   range
   repetition
   sequence
+  string
   until
   whitespace
   )
