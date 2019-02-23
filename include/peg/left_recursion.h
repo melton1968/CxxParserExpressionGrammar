@@ -21,10 +21,14 @@ struct LeftRecursion
 	auto begin = input.point();
 	auto iter = seeds.find(begin);
 	if (iter != seeds.end())
-	    return input.with_status(iter->second != begin, iter->second - begin);
+	{
+	    auto r = input.with_status(iter->second != begin, iter->second - begin);
+	    (Actions<Self>::recursion_matched(begin, r, states...), ...);
+	    return r;
+	}
 
 	seeds[begin] = begin;
-	(Actions<Self>::begin_recursion(input, states...), ...);
+	(Actions<Self>::recursion_begin(input, states...), ...);
 	
 	auto longest = input;
 	while(true)
@@ -35,17 +39,17 @@ struct LeftRecursion
 	    if (r and r.point() > seeds[begin])
 	    {
 		longest = r;
-		(Actions<Self>::success_recursion(longest, states...), ...);
+		(Actions<Self>::recursion_success(begin, longest, states...), ...);
 		seeds[begin] = longest.point();
 	    }
 	    else
 	    {
-		(Actions<Self>::failure_recursion(r, states...), ...);
+		(Actions<Self>::recursion_failure(begin, r, states...), ...);
 		break;
 	    }
 	}
 
-	(Actions<LeftRecursion<P>>::end_recursion(longest, states...), ...);
+	(Actions<LeftRecursion<P>>::recursion_end(longest, states...), ...);
 	return longest;
     }
 };

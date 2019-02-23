@@ -22,14 +22,25 @@ struct Node
     using Children = std::vector<Ptr>;
     string_view content;
     Children children;
+
+    Ptr clone() const
+    {
+	auto n = std::make_unique<Node>();
+	n->content = content;
+	for (auto& c : children)
+	{
+	    auto new_child = c->clone();
+	    n->children.emplace_back(std::move(new_child));
+	}
+	return n;
+    }
 };
 
 void print(Node::Ptr& node, size_t level = 0)
 {
-    cout << " ";
-    for (size_t i = 1; i < level; ++i)
-	cout << "   |";
     cout << "   ";
+    for (size_t i = 0; i < level; ++i)
+	cout << "|   ";
     cout << node->content << endl;
     for (auto& n : node->children)
 	print(n, level+1);
@@ -72,12 +83,23 @@ struct ParseTreeAction : ::NullAction<Parser>
     }
 };
 
+void replace_matching_nodes(Node::Ptr& node, Node::Ptr& new_node)
+{
+    if (node->content == new_node->content)
+    {
+	node = new_node->clone();
+	return;
+    }
+    for (auto& n : node->children)
+	replace_matching_nodes(n, new_node);
+}
+
 template<class T>
 requires (T::IsLeftRecursionParser == true)
 struct ParseTreeAction<T> : ParseTreeAction<void>
 {
     using Base = ParseTreeAction<void>;
-    using Nodes = std::stack<Node::Ptr>;
+    using Nodes = std::map<const char*, Node::Ptr>;
 
     static Nodes& nodes()
     {
@@ -94,32 +116,55 @@ struct ParseTreeAction<T> : ParseTreeAction<void>
     static void success(const Input& input, Tree& pt)
     { Base::success(input, pt); }
 
-    static void begin_recursion(const Input& input, Tree& pt)
+    static void recursion_begin(const Input& input, Tree& pt)
     { }
 
-    static void success_recursion(const Input& input, Tree& pt)
+    static void recursion_success(const char *begin, const Input& input, Tree& pt)
     {
-	cout << pt.nodes.top()->children.size() << endl;
-
-	auto n = std::move(pt.nodes.top()->children.back());
+	cout << "success: " << input.match() << endl;
+	
+	auto base = std::move(pt.nodes.top()->children.back());
 	pt.nodes.top()->children.pop_back();
-	nodes().emplace(std::move(n));
-    }
 
-    static void failure_recursion(const Input& input, Tree& pt)
-    {
-	pt.nodes.top()->children.pop_back();
-    }
+	auto n = std::move(base->children.back());
 
-    static void end_recursion(const Input& input, Tree& pt)
-    {
-	cout << pt.nodes.top()->children.size() << endl;
-	while (nodes().size() > 0)
+	print(n);
+	if (nodes().find(begin) == nodes().end())
+	    nodes().insert_or_assign(begin, std::move(n));
+	else
 	{
-	    auto& n = nodes().top();
-	    pt.nodes.top()->children.emplace_back(std::move(n));
-	    nodes().pop();
+	    auto previous_node = std::move(nodes()[begin]);
+	    replace_matching_nodes(n, previous_node);
+	    nodes()[begin] = std::move(n);
 	}
+    }
+
+    static void recursion_failure(const char *begin, const Input& input, Tree& pt)
+    {
+	pt.nodes.top()->children.pop_back();
+    }
+
+    static void recursion_matched(const char *begin, const Input& input, Tree& pt)
+    {
+	cout << "matched: " << input.match() << endl;
+	if (input.status())
+	{
+	    auto& n = nodes()[begin];
+	    assert(n);
+	    print(n);
+	    auto new_node = n->clone();
+	    if (pt.nodes.top()->children.size() > 0)
+		pt.nodes.top()->children.pop_back();
+		
+	    pt.nodes.top()->children.emplace_back(std::move(new_node));
+	    cout << pt.nodes.top()->children.size() << endl;
+	}
+    }
+
+    static void recursion_end(const Input& input, Tree& pt)
+    {
+	cout << "end:" << endl;
+	print(pt.nodes.top());
     }
 };
 
@@ -127,15 +172,9 @@ struct ParseTreeAction<T> : ParseTreeAction<void>
 
 struct Expr : LeftRecursion<
     Or<
-	Seq<Expr, c::Plus, c::a>,
-	c::a
+	Seq<Expr, c::Plus, Range<'a','z'>>,
+	Range<'a','z'>
 	>
-    >
-{};
-
-struct Expr1 : Or<
-    Seq<LeftRecursion<Expr1>, c::Plus, c::a>,
-    c::a
     >
 {};
 
@@ -147,7 +186,7 @@ int tool_main(int argc, const char *argv[])
     peg::expr::apply_rt<peg::expr::printer, std::tuple<Expr>>::apply(cout);
     cout << endl;
 
-    string str = "a+a+a+a";
+    string str = "a+b+c";
     peg::Tree parse_tree;
     parse_tree.nodes.push(std::make_unique<peg::Node>());
     auto r = parse<Expr, ParseTreeAction>(str, parse_tree);
@@ -157,7 +196,7 @@ int tool_main(int argc, const char *argv[])
     parse_tree.nodes.pop();
     assert(parse_tree.nodes.empty());
 
-    print(root);
+    print(root->children[0]);
 
     return 0;
 }

@@ -13,18 +13,18 @@ namespace mp = core::mp;
 struct Number : Range<'0','9'> {};
 struct Numbers : OneOrMore<Range<'0','9'>> {};
 
-struct Fact;
-struct Fact : Or<
-    Seq<LeftRecursion<Fact>, c::Multiply, Number>,
-    Seq<LeftRecursion<Fact>, c::Divide, Number>,
-    Number>
+struct Fact : LeftRecursion<
+    Or<
+	Seq<Fact, c::Multiply, Number>,
+	Seq<Fact, c::Divide, Number>,
+	Number>>
 {};
 
-struct Expr;
-struct Expr : Or<
-    Seq<LeftRecursion<Expr>, c::Plus, Fact>,
-    Seq<LeftRecursion<Expr>, c::Minus, Fact>,
-    Fact>
+struct Expr : LeftRecursion<
+    Or<
+	Seq<Expr, c::Plus, Fact>,
+	Seq<Expr, c::Minus, Fact>,
+	Fact>>
 {};
 
 int tool_main(int argc, const char *argv[])
@@ -32,10 +32,16 @@ int tool_main(int argc, const char *argv[])
     core::POpt opts;
     opts.process(argc, argv);
 
+    for (auto& str : opts.extra())
     {
-	[[maybe_unused]] expr::check_recursion_t<Expr> ignore;
-	expr::apply_rt<expr::printer, std::tuple<Expr>>::apply(cout);
+	auto r = parse<Expr>(str);
+	cout << str << " : " << r.status() << " : " << r.match() << endl;
     }
+
+    // {
+    // 	// [[maybe_unused]] expr::check_recursion_t<Expr> ignore;
+    // 	expr::apply_rt<expr::printer, std::tuple<Expr>>::apply(cout);
+    // }
 
     return 0;
 }
