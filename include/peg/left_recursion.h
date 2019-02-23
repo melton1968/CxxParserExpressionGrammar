@@ -49,7 +49,8 @@ struct LeftRecursion
 	    }
 	}
 
-	(Actions<LeftRecursion<P>>::recursion_end(longest, states...), ...);
+	seeds.clear();
+	(Actions<LeftRecursion<P>>::recursion_end(begin, longest, states...), ...);
 	return longest;
     }
 };

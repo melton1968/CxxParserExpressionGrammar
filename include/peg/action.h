@@ -20,7 +20,7 @@ struct NullAction
     template<class... States> static void recursion_success(const char*, Input, States&&...) {}
     template<class... States> static void recursion_failure(const char*, Input, States&&...) {}
     template<class... States> static void recursion_matched(const char*, Input, States&&...) {}
-    template<class... States> static void recursion_end(Input, States&&...) {}
+    template<class... States> static void recursion_end(const char*, Input, States&&...) {}
 };
 
 template<template<class> class NewAction, class P, class... Ps>

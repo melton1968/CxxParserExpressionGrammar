@@ -27,7 +27,7 @@ struct Repetition<N, M, P>
 	size_t count = 0;
 	auto last_r = input;
 	Input r = input;
-	while (count < M and (r = P::template match<Control, Actions...>(last_r, states...)))
+	while (count < M and (r = Control::template match<P, Actions...>(last_r, states...)))
 	{
 	    ++count;
 	    last_r = r;
