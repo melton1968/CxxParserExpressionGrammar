@@ -23,14 +23,20 @@ struct DebugAction : NullAction<Parser>
     }
 };
 
-template<class W = WhiteSpace>
+template<class Skip = void>
 struct BasicControl
 {
     using Self = BasicControl;
+    using SkipParser = Skip;
+
+    template<class NewSkip>
+    using WithNewSkip = BasicControl<NewSkip>;
+	
     template<class Parser, template<class> class... Actions, class... States>
     static Input match(Input input, States&&... states)
     {
-	input = W::template match<Self>(input);
+	if constexpr (not std::is_same_v<SkipParser, void>)
+			 input = SkipParser::template match<Self>(input);
 	
 	(Actions<Parser>::start(input, states...) , ...);
 	
@@ -53,13 +59,21 @@ struct BasicControl
     }
 };
 
-template<class NewControl, class Parser>
-struct SwitchControl
+template<class Skip, class Parser>
+struct ChangeSkip
 {
     template<class Control, template<class> class... Actions, class... States>
     static Input match(Input input, States&... states)
-    { return NewControl::template match<Parser, Actions...>(input, states...); }
+    {
+	using NewControl = typename Control:: template WithNewSkip<Skip>;
+	return NewControl::template match<Parser, Actions...>(input, states...);
+    }
 };
 
+template<class P>
+using NoSkip = ChangeSkip<void, P>;
+
+template<class P>
+using SkipWhiteSpace = ChangeSkip<WhiteSpace, P>;
 
 }; // end peg

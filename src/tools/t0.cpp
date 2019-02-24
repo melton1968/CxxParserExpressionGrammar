@@ -9,12 +9,9 @@
 
 using namespace peg;
 
-template<class P>
-using NoWhiteSpace = SwitchControl<BasicControl<Succeed>, P>;
-
 struct Expr;
 
-struct Number : NoWhiteSpace<OneOrMore<Range<'0','9'>>>
+struct Number : NoSkip<OneOrMore<Range<'0','9'>>>
 	      , cst::ProtoNode<Number>
 	      , cst::DiscardChildren<true>
 {};
@@ -31,7 +28,7 @@ struct Expr : LeftRecursion<Or<ExprPlus, ExprMinus, Number>>
 	    , cst::ProtoNode<Expr>
 {};
 
-struct Grammar : Seq<Expr, Must<EndOfFile>>
+struct Grammar : SkipWhiteSpace<Seq<Expr, Must<EndOfFile>>>
 {};
 
 int tool_main(int argc, const char *argv[])
