@@ -2,6 +2,7 @@
 //
 
 #pragma once
+#include <stack>
 #include "peg/cst/node.h"
 
 namespace peg::cst
