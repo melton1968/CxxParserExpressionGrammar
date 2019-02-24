@@ -1,13 +1,8 @@
 // Copyright (C) 2019 by Mark Melton
 //
 
-#include <typeindex>
-#include <stack>
-#include <fmt/format.h>
 #include "core/tool.h"
 #include "core/demangle.h"
-#include "core/mp/mp.h"
-#include "core/string/replace.h"
 #include "peg/peg.h"
 #include "peg/expr/expr.h"
 #include "peg/cst/action.h"
@@ -23,17 +18,14 @@ struct Number : OneOrMore<Range<'0','9'>>
 
 struct ExprPlus : Seq<Expr, c::Plus, Number>
 		, cst::ProtoNode<ExprPlus>
-		, cst::DiscardContent<true>
 {};
 
 struct ExprMinus : Seq<Expr, c::Minus, Number>
 		, cst::ProtoNode<ExprMinus>
-		, cst::DiscardContent<true>
 {};
 
 struct Expr : LeftRecursion<Or<ExprPlus, ExprMinus, Number>>
 		, cst::ProtoNode<Expr>
-		, cst::DiscardContent<true>
 {};
 
 int tool_main(int argc, const char *argv[])

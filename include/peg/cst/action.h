@@ -21,19 +21,6 @@ requires ((T::DiscardChildrenValue == true))
 struct DiscardChildrenValue<T>
 { static constexpr bool value = true; };
 
-template<bool V>
-struct DiscardContent
-{ static constexpr bool DiscardConentValue = V; };
-
-template<class T>
-struct DiscardContentValue
-{ static constexpr bool value = false; };
-
-template<class T>
-requires ((T::DiscardContentValue == true))
-struct DiscardContentValue<T>
-{ static constexpr bool value = true; };
-
 template<class Parser>
 struct Action : NullAction<Parser>
 {
@@ -51,8 +38,8 @@ struct Action : NullAction<Parser>
 	auto n = std::move(pt.nodes.top());
 	pt.nodes.pop();
 
+	n->content = input.match();
 	if constexpr (DiscardChildrenValue<Parser>::value) n->children.clear();
-	if constexpr (not DiscardContentValue<Parser>::value) n->content = input.match();
 
 	pt.nodes.top()->children.emplace_back(std::move(n));
     }
