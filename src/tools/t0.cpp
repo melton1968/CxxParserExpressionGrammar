@@ -29,6 +29,7 @@ struct Expr : LeftRecursion<Or<ExprPlus, ExprMinus, Number>>
 {};
 
 struct Grammar : SkipWhiteSpace<Seq<Expr, Must<EndOfFile>>>
+	       , cst::ProtoNode<Grammar>
 {};
 
 int tool_main(int argc, const char *argv[])
@@ -36,6 +37,8 @@ int tool_main(int argc, const char *argv[])
     core::POpt opts;
     opts.process(argc, argv);
 
+    cout << "node: " << sizeof(cst::Node) << endl;
+    cout << "number: " << sizeof(Number) << endl;
     peg::expr::apply_rt<peg::expr::printer, std::tuple<Expr>>::apply(cout);
     cout << endl;
 

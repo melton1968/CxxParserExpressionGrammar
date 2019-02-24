@@ -9,12 +9,14 @@ namespace peg::cst
 
 struct Node
 {
+    static constexpr bool IsNode = true;
     using Self = Node;
     using Ptr = std::unique_ptr<Self>;
     using Children = std::vector<Ptr>;
     
     virtual ~Node() = default;
     virtual Ptr make_unique() const { return std::make_unique<Self>(); }
+    virtual string type_name() const { return core::type_name<Self>(); }
     
     string_view content;
     Children children;
@@ -38,10 +40,12 @@ namespace detail
 template<class Base, class Derived>
 struct Prototype : public Base
 {
-    static constexpr bool IsNode = true;
     virtual ~Prototype() = default;
-    virtual std::unique_ptr<Base> make_unique() const
+    
+    virtual std::unique_ptr<Base> make_unique() const override
     { return std::make_unique<Derived>(); }
+    
+    virtual string type_name() const override { return core::type_name<Derived>(); }
 };
 
 }; // end ns detail

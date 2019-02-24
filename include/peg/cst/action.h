@@ -22,7 +22,7 @@ struct DiscardChildrenValue<T>
 { static constexpr bool value = true; };
 
 template<class Parser>
-struct Action : NullAction<Parser>
+struct BaseAction : NullAction<Parser>
 {
     static void start(const Input& input, Tree& pt)
     {
@@ -43,10 +43,13 @@ struct Action : NullAction<Parser>
 	n->content = input.match();
 	if constexpr (DiscardChildrenValue<Parser>::value) n->children.clear();
 
-	assert(pt.nodes.size() > 0);
 	pt.nodes.top()->children.emplace_back(std::move(n));
     }
 };
+
+template<class Parser>
+struct Action : BaseAction<Parser>
+{};
 
 void replace_matching_nodes(Node::Ptr& node, Node::Ptr& new_node)
 {
@@ -59,11 +62,11 @@ void replace_matching_nodes(Node::Ptr& node, Node::Ptr& new_node)
 	replace_matching_nodes(n, new_node);
 }
 
-template<class T>
-requires ((T::IsLeftRecursionParser == true))
-struct Action<T> : Action<void>
+template<class Parser>
+requires ((Parser::IsLeftRecursionParser == true))
+struct Action<Parser> : BaseAction<Parser>
 {
-    using Base = Action<void>;
+    using Base = BaseAction<Parser>;
     using Nodes = std::map<const char*, Node::Ptr>;
 
     static Nodes& nodes()
@@ -109,7 +112,6 @@ struct Action<T> : Action<void>
 	if (input.status())
 	{
 	    auto& n = nodes()[begin];
-	    assert(n);
 	    auto new_node = n->clone();
 	    pt.nodes.top()->children.emplace_back(std::move(new_node));
 	}
@@ -119,8 +121,9 @@ struct Action<T> : Action<void>
     {
 	if (nodes().find(begin) != nodes().end())
 	{
-	    pt.nodes.pop();
-	    pt.nodes.emplace(std::move(nodes()[begin]));
+	    auto n = std::move(nodes()[begin]);
+	    pt.nodes.top()->children.clear();
+	    pt.nodes.top()->children.emplace_back(std::move(n));
 	}
 	nodes().clear();
     }
