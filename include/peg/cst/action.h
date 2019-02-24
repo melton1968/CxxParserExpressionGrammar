@@ -8,11 +8,40 @@
 namespace peg::cst
 {
 
+template<bool V>
+struct DiscardChildren
+{ static constexpr bool DiscardChildrenValue = V; };
+
+template<class T>
+struct DiscardChildrenValue
+{ static constexpr bool value = false; };
+
+template<class T>
+requires ((T::DiscardChildrenValue == true))
+struct DiscardChildrenValue<T>
+{ static constexpr bool value = true; };
+
+template<bool V>
+struct DiscardContent
+{ static constexpr bool DiscardConentValue = V; };
+
+template<class T>
+struct DiscardContentValue
+{ static constexpr bool value = false; };
+
+template<class T>
+requires ((T::DiscardContentValue == true))
+struct DiscardContentValue<T>
+{ static constexpr bool value = true; };
+
 template<class Parser>
 struct Action : NullAction<Parser>
 {
     static void start(const Input& input, Tree& pt)
-    { pt.nodes.emplace(std::make_unique<Node>()); }
+    {
+	if constexpr (IsNode<Parser>) pt.nodes.emplace(std::make_unique<Parser>());
+	else pt.nodes.emplace(std::make_unique<Node>());
+    }
     
     static void failure(const Input& input, Tree& pt)
     { pt.nodes.pop(); }
@@ -21,7 +50,10 @@ struct Action : NullAction<Parser>
     {
 	auto n = std::move(pt.nodes.top());
 	pt.nodes.pop();
-	n->content = input.match();
+
+	if constexpr (DiscardChildrenValue<Parser>::value) n->children.clear();
+	if constexpr (not DiscardContentValue<Parser>::value) n->content = input.match();
+
 	pt.nodes.top()->children.emplace_back(std::move(n));
     }
 };
@@ -38,7 +70,7 @@ void replace_matching_nodes(Node::Ptr& node, Node::Ptr& new_node)
 }
 
 template<class T>
-requires (T::IsLeftRecursionParser == true)
+requires ((T::IsLeftRecursionParser == true))
 struct Action<T> : Action<void>
 {
     using Base = Action<void>;

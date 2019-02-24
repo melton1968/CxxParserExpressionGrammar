@@ -14,53 +14,27 @@
 
 using namespace peg;
 
-template<class Base, class Derived>
-struct Cloneable : public Base
-{
-    using Self = Cloneable<Base, Derived>;
-    virtual ~Cloneable() = default;
-    
-    std::unique_ptr<Derived> clone() const
-    {
-	auto ptr = static_cast<const Derived*>(this);
-	auto new_ptr = std::make_unique<Derived>();
-	
-    }
-};
-
-struct Node
-{
-    using Self = Node;
-    using Ptr = std::unique_ptr<Self>;
-    using Children = std::vector<Ptr>;
-    string_view content;
-    Children children;
-
-    Ptr deep_copy() const
-    {
-	auto cloned_node = std::unique_ptr<Self>();
-	cloned_node->content = content;
-	for (auto& child : children)
-	    cloned_node->children.emplace_back(child->deep_copy());
-	return cloned_node;
-    }
-};
-
 struct Expr;
-struct Atom : Range<'a','z'> {};
-struct ExprPlus : Seq<Expr, c::Plus, Atom> {};
-struct ExprMinus : Seq<Expr, c::Minus, Atom> {};
-struct Expr : LeftRecursion<Or<ExprPlus, ExprMinus, Atom>> {};
 
-struct ExprPlusNode {};
-struct ExprMinusNode {};
+struct Number : OneOrMore<Range<'0','9'>>
+	      , cst::ProtoNode<Number>
+	      , cst::DiscardChildren<true>
+{};
 
-template<class Rule>
-struct RuleToNode
-{ using NodeType = Node; };
+struct ExprPlus : Seq<Expr, c::Plus, Number>
+		, cst::ProtoNode<ExprPlus>
+		, cst::DiscardContent<true>
+{};
 
-template<> struct RuleToNode<ExprPlus> { using NodeType = ExprPlusNode; };
-template<> struct RuleToNode<ExprMinus> { using NodeType = ExprMinusNode; };
+struct ExprMinus : Seq<Expr, c::Minus, Number>
+		, cst::ProtoNode<ExprMinus>
+		, cst::DiscardContent<true>
+{};
+
+struct Expr : LeftRecursion<Or<ExprPlus, ExprMinus, Number>>
+		, cst::ProtoNode<Expr>
+		, cst::DiscardContent<true>
+{};
 
 int tool_main(int argc, const char *argv[])
 {
