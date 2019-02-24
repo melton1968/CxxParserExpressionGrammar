@@ -5,6 +5,7 @@
 #include "core/demangle.h"
 #include "peg/action.h"
 #include "peg/input.h"
+#include "peg/whitespace.h"
 
 namespace peg
 {
@@ -22,12 +23,15 @@ struct DebugAction : NullAction<Parser>
     }
 };
 
+template<class W = WhiteSpace>
 struct BasicControl
 {
     using Self = BasicControl;
     template<class Parser, template<class> class... Actions, class... States>
     static Input match(Input input, States&&... states)
     {
+	input = W::template match<Self>(input);
+	
 	(Actions<Parser>::start(input, states...) , ...);
 	
 	auto r = Parser::template match<Self, Actions...>(input, states...);
@@ -49,12 +53,12 @@ struct BasicControl
     }
 };
 
-template<class NewControl>
+template<class NewControl, class Parser>
 struct SwitchControl
 {
-    template<class Control, class Parser, template<class> class... Actions, class... States>
+    template<class Control, template<class> class... Actions, class... States>
     static Input match(Input input, States&... states)
-    { return NewControl::template match<Actions...>(input, states...); }
+    { return NewControl::template match<Parser, Actions...>(input, states...); }
 };
 
 

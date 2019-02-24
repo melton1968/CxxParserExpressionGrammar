@@ -9,9 +9,12 @@
 
 using namespace peg;
 
+template<class P>
+using NoWhiteSpace = SwitchControl<BasicControl<Succeed>, P>;
+
 struct Expr;
 
-struct Number : OneOrMore<Range<'0','9'>>
+struct Number : NoWhiteSpace<OneOrMore<Range<'0','9'>>>
 	      , cst::ProtoNode<Number>
 	      , cst::DiscardChildren<true>
 {};
@@ -25,7 +28,10 @@ struct ExprMinus : Seq<Expr, c::Minus, Number>
 {};
 
 struct Expr : LeftRecursion<Or<ExprPlus, ExprMinus, Number>>
-		, cst::ProtoNode<Expr>
+	    , cst::ProtoNode<Expr>
+{};
+
+struct Grammar : Seq<Expr, Must<EndOfFile>>
 {};
 
 int tool_main(int argc, const char *argv[])
@@ -39,7 +45,7 @@ int tool_main(int argc, const char *argv[])
     for (auto str : opts.extra())
     {
 	peg::cst::Tree cst;
-	auto r = parse<Expr, cst::Action>(str, cst);
+	auto r = parse<Grammar, cst::Action>(str, cst);
 	cout << "match: " << r.match() << endl;
 
 	assert(cst.nodes.size() == 1);
