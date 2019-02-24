@@ -43,10 +43,13 @@ int tool_main(int argc, const char *argv[])
 	cout << "match: " << r.match() << endl;
 
 	assert(cst.nodes.size() == 1);
-	assert(cst.nodes.top()->children.size() == 1);
-	
-	auto& root = cst.nodes.top()->children.back();
-	print(root);
+	assert(cst.nodes.top()->children.size() <= 1);
+
+	if (cst.nodes.top()->children.size() == 1)
+	{
+	    auto& root = cst.nodes.top()->children.back();
+	    print(root);
+	}
     }
 
     return 0;

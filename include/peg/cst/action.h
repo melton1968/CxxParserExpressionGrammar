@@ -31,7 +31,9 @@ struct Action : NullAction<Parser>
     }
     
     static void failure(const Input& input, Tree& pt)
-    { pt.nodes.pop(); }
+    {
+	pt.nodes.pop();
+    }
     
     static void success(const Input& input, Tree& pt)
     {
@@ -41,6 +43,7 @@ struct Action : NullAction<Parser>
 	n->content = input.match();
 	if constexpr (DiscardChildrenValue<Parser>::value) n->children.clear();
 
+	assert(pt.nodes.size() > 0);
 	pt.nodes.top()->children.emplace_back(std::move(n));
     }
 };
@@ -114,8 +117,11 @@ struct Action<T> : Action<void>
 
     static void recursion_end(const char *begin, const Input& input, Tree& pt)
     {
-	pt.nodes.pop();
-	pt.nodes.emplace(std::move(nodes()[begin]));
+	if (nodes().find(begin) != nodes().end())
+	{
+	    pt.nodes.pop();
+	    pt.nodes.emplace(std::move(nodes()[begin]));
+	}
 	nodes().clear();
     }
 };
