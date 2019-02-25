@@ -32,7 +32,11 @@ struct Node
 	}
 	return n;
     }
+
+    static const std::type_index TypeId;
 };
+
+const std::type_index Node::TypeId = typeid(Node);
 
 namespace detail
 {

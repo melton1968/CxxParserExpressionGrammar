@@ -27,29 +27,47 @@ struct BaseAction : NullAction<Parser>
 {
     static void start(const Input& input, Tree& pt)
     {
+	ExpectGT(pt.nodes.size(), 0);
+	
 	if constexpr (IsNode<Parser>) pt.nodes.emplace(std::make_unique<Parser>());
 	else pt.nodes.emplace(std::make_unique<Node>());
+
+	EnsureGT(pt.nodes.size(), 1);
     }
     
     static void failure(const Input& input, Tree& pt)
     {
+	ExpectGT(pt.nodes.size(), 1);
 	pt.nodes.pop();
+	EnsureGT(pt.nodes.size(), 0);
     }
     
     static void success(const Input& input, Tree& pt)
     {
+	ExpectGT(pt.nodes.size(), 1);
+	
 	auto n = std::move(pt.nodes.top());
 	pt.nodes.pop();
 
-	n->content = input.match();
 	if constexpr (DiscardChildrenValue<Parser>::value) n->children.clear();
-
-	std::type_index const base_node_id = typeid(Node);
-	while (n->children.size() == 1 and base_node_id == typeid(n))
-	    n = std::move(n->children.back());
-
+	else n = discard_redundant_nodes(std::move(n));
+	
+	n->content = input.match();
 	pt.nodes.top()->children.emplace_back(std::move(n));
+
+	print(pt.nodes.top());
+	cout << endl;
+	
+	EnsureGT(pt.nodes.size(), 0);
     }
+
+    static Node::Ptr discard_redundant_nodes(Node::Ptr n)
+    {
+	while (n->children.size() == 1 and Node::TypeId == typeid(*n))
+	    n = std::move(n->children.back());
+	return std::move(n);
+    }
+	
 };
 
 template<class Parser>
@@ -94,14 +112,13 @@ struct Action<Parser> : BaseAction<Parser>
 
     static void recursion_success(const char *begin, const Input& input, Tree& pt)
     {
-	ExpectGT(pt.nodes.size(), 0u);
-	ExpectEQ(pt.nodes.top()->children.size(), 1u);
+	ExpectGT(pt.nodes.size(), 0);
+	ExpectEQ(pt.nodes.top()->children.size(), 1);
 	
 	auto n = std::move(pt.nodes.top()->children.back());
 	pt.nodes.top()->children.pop_back();
 
-	while (n->children.size() == 1)
-	    n = std::move(n->children.back());
+	n = Base::discard_redundant_nodes(std::move(n));
 
 	if (nodes().find(begin) == nodes().end())
 	    nodes().insert_or_assign(begin, std::move(n));
@@ -120,8 +137,8 @@ struct Action<Parser> : BaseAction<Parser>
     {
 	if (input.status())
 	{
-	    assert(nodes().find(begin) != nodes().end());
-	    assert(pt.nodes.size() > 0);
+	    ExpectTRUE(nodes().find(begin) != nodes().end());
+	    ExpectGT(pt.nodes.size(), 0);
 
 	    auto new_node = nodes()[begin]->clone();
 	    pt.nodes.top()->children.emplace_back(std::move(new_node));
@@ -132,6 +149,8 @@ struct Action<Parser> : BaseAction<Parser>
     {
 	if (nodes().find(begin) != nodes().end())
 	{
+	    ExpectGT(pt.nodes.size(), 0);
+	    
 	    auto n = std::move(nodes()[begin]);
 	    pt.nodes.top()->children.clear();
 	    pt.nodes.top()->children.emplace_back(std::move(n));
