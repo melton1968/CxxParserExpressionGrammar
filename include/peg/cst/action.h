@@ -37,6 +37,8 @@ struct BaseAction : NullAction<Parser>
     
     static void success(const Input& input, Tree& pt)
     {
+	cout << "success: " << input.match() << endl;
+	print(pt.nodes.top());
 	auto n = std::move(pt.nodes.top());
 	pt.nodes.pop();
 
@@ -89,10 +91,16 @@ struct Action<Parser> : BaseAction<Parser>
 
     static void recursion_success(const char *begin, const Input& input, Tree& pt)
     {
-	auto base = std::move(pt.nodes.top()->children.back());
+	cout << "r-success: " << endl;
+	print(pt.nodes.top());
+	ExpectGT(pt.nodes.size(), 0u);
+	ExpectEQ(pt.nodes.top()->children.size(), 1u);
+	
+	auto n = std::move(pt.nodes.top()->children.back());
 	pt.nodes.top()->children.pop_back();
 
-	auto n = std::move(base->children.back());
+	while (n->children.size() == 1)
+	    n = std::move(n->children.back());
 
 	if (nodes().find(begin) == nodes().end())
 	    nodes().insert_or_assign(begin, std::move(n));
@@ -109,16 +117,20 @@ struct Action<Parser> : BaseAction<Parser>
 
     static void recursion_matched(const char *begin, const Input& input, Tree& pt)
     {
+	cout << "r-matched: " << input.status() << endl;
 	if (input.status())
 	{
-	    auto& n = nodes()[begin];
-	    auto new_node = n->clone();
+	    assert(nodes().find(begin) != nodes().end());
+	    assert(pt.nodes.size() > 0);
+
+	    auto new_node = nodes()[begin]->clone();
 	    pt.nodes.top()->children.emplace_back(std::move(new_node));
 	}
     }
 
     static void recursion_end(const char *begin, const Input& input, Tree& pt)
     {
+	cout << "r-end: " << endl;
 	if (nodes().find(begin) != nodes().end())
 	{
 	    auto n = std::move(nodes()[begin]);
