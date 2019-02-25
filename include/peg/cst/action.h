@@ -2,6 +2,7 @@
 //
 
 #pragma once
+#include <typeindex>
 #include "peg/cst/tree.h"
 #include "peg/action.h"
 
@@ -37,13 +38,15 @@ struct BaseAction : NullAction<Parser>
     
     static void success(const Input& input, Tree& pt)
     {
-	cout << "success: " << input.match() << endl;
-	print(pt.nodes.top());
 	auto n = std::move(pt.nodes.top());
 	pt.nodes.pop();
 
 	n->content = input.match();
 	if constexpr (DiscardChildrenValue<Parser>::value) n->children.clear();
+
+	std::type_index const base_node_id = typeid(Node);
+	while (n->children.size() == 1 and base_node_id == typeid(n))
+	    n = std::move(n->children.back());
 
 	pt.nodes.top()->children.emplace_back(std::move(n));
     }
@@ -91,8 +94,6 @@ struct Action<Parser> : BaseAction<Parser>
 
     static void recursion_success(const char *begin, const Input& input, Tree& pt)
     {
-	cout << "r-success: " << endl;
-	print(pt.nodes.top());
 	ExpectGT(pt.nodes.size(), 0u);
 	ExpectEQ(pt.nodes.top()->children.size(), 1u);
 	
@@ -117,7 +118,6 @@ struct Action<Parser> : BaseAction<Parser>
 
     static void recursion_matched(const char *begin, const Input& input, Tree& pt)
     {
-	cout << "r-matched: " << input.status() << endl;
 	if (input.status())
 	{
 	    assert(nodes().find(begin) != nodes().end());
@@ -130,12 +130,12 @@ struct Action<Parser> : BaseAction<Parser>
 
     static void recursion_end(const char *begin, const Input& input, Tree& pt)
     {
-	cout << "r-end: " << endl;
 	if (nodes().find(begin) != nodes().end())
 	{
 	    auto n = std::move(nodes()[begin]);
 	    pt.nodes.top()->children.clear();
 	    pt.nodes.top()->children.emplace_back(std::move(n));
+	    
 	}
 	nodes().clear();
     }
