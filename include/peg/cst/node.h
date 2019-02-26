@@ -16,26 +16,51 @@ struct Node
     using Ptr = std::unique_ptr<Self>;
     using Children = std::vector<Ptr>;
 
+    template<class T, class... Args>
+    static Ptr make(Args&&... args)
+    { return std::make_unique<T>(args...); }
+
     Node() = default;
-    Node(string_view arg_content)
-	: content(arg_content)
+    Node(string_view content)
+	: m_content(content)
     { }
+
+    Node(const Node&) = delete;
+    Node(const Node&&) = delete;
     
     virtual ~Node() = default;
     virtual Ptr make_unique() const { return std::make_unique<Self>(); }
     virtual string type_name() const { return core::type_name<Self>(); }
-    
-    string_view content;
-    Children children;
+
+    const auto& tid() const { return typeid(*this); }
+
+    string_view content() const { return m_content; }
+    void set_content(string_view content) { m_content = content; }
+
+    const Ptr& child(size_t i) const
+    { return m_children[i]; }
+
+    const Children& children() const
+    { return m_children; }
+
+    Children& children()
+    { return m_children; }
+
+    void emplace_child(Ptr child)
+    { m_children.emplace_back(std::move(child)); }
+
+    Ptr move_child(size_t i)
+    { return std::move(m_children[i]); }
 
     Ptr clone() const
     {
 	auto n = make_unique();
-	n->content = content;
-	for (auto& c : children)
+	n->set_content(m_content);
+	
+	for (auto& c : m_children)
 	{
 	    auto new_child = c->clone();
-	    n->children.emplace_back(std::move(new_child));
+	    n->emplace_child(std::move(new_child));
 	}
 	return n;
     }
@@ -43,13 +68,47 @@ struct Node
     void replace_children_with_grandchildren()
     {
 	Children new_children;
-	for (auto& child : children)
-	    for (auto& grandchild : child->children)
+	for (auto& child : children())
+	    for (auto& grandchild : child->children())
 		new_children.emplace_back(std::move(grandchild));
-	std::swap(children, new_children);
+	std::swap(m_children, new_children);
     }
 
+    void print(std::ostream& os, size_t level = 0) const
+    {
+	os << "   ";
+	for (size_t i = 0; i < level; ++i)
+	    os << "|   ";
+	os << "'" << content() << "'";
+	os << "    " << core::type_name(*this);
+	os << endl;
+
+	for (const auto& n : children())
+	    n->print(os, level+1);
+    }
+
+    friend bool operator==(const Ptr& a, const Ptr& b)
+    {
+	if (a->content() != b->content())
+	    return false;
+
+	if (a->children().size() != b->children().size())
+	    return false;
+
+	for (size_t i = 0; i < a->children().size(); ++i)
+	    if (a->child(i) != b->child(i))
+		return false;
+	return true;
+    }
+
+    friend bool operator!=(const Ptr& a, const Ptr& b)
+    { return not (a == b); }
+
     static const std::type_index TypeId;
+    
+private:
+    string_view m_content;
+    Children m_children;
 };
 
 const std::type_index Node::TypeId = typeid(Node);
@@ -82,18 +141,5 @@ using ProtoNode = detail::Prototype<Node, Derived>;
 
 template<class Node>
 concept bool IsNode = Node::IsNode == true;
-
-void print(Node::Ptr& node, size_t level = 0)
-{
-    cout << "   ";
-    for (size_t i = 0; i < level; ++i)
-	cout << "|   ";
-    cout << "'" << node->content << "'";
-    cout << "    " << core::type_name(*node);
-    cout << endl;
-
-    for (auto& n : node->children)
-	print(n, level+1);
-}
 
 }; // end ns peg::cst

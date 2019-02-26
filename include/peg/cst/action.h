@@ -65,21 +65,21 @@ struct BaseAction : NullAction<Parser>
 	auto n = std::move(pt.nodes.top());
 	pt.nodes.pop();
 
-	if constexpr (GetDiscardChildren<Parser>::value) n->children.clear();
+	if constexpr (GetDiscardChildren<Parser>::value) n->children().clear();
 	else if (GetDiscardRedundant<Self>::value) n = discard_redundant_nodes(std::move(n));
 	
-	n->content = input.match();
-	pt.nodes.top()->children.emplace_back(std::move(n));
+	n->set_content(input.match());
+	pt.nodes.top()->emplace_child(std::move(n));
 
 	EnsureGT(pt.nodes.size(), 0);
     }
 
     static Node::Ptr discard_redundant_nodes(Node::Ptr n)
     {
-	while (n->children.size() == 1 and Node::TypeId == typeid(*n))
-	    n = std::move(n->children.front());
+	while (n->children().size() == 1 and Node::TypeId == typeid(*n))
+	    n = n->move_child(0);
 	
-	while (n->children.size() == 1 and Node::TypeId == typeid(*(n->children.front())))
+	while (n->children().size() == 1 and Node::TypeId == typeid(*(n->child(0))))
 	    n->replace_children_with_grandchildren();
 		
 	return std::move(n);
@@ -93,12 +93,12 @@ struct Action : BaseAction<Parser, Parameters...>
 
 void replace_matching_nodes(Node::Ptr& node, Node::Ptr& new_node)
 {
-    if (node->content == new_node->content)
+    if (node->content() == new_node->content())
     {
 	node = new_node->clone();
 	return;
     }
-    for (auto& n : node->children)
+    for (auto& n : node->children())
 	replace_matching_nodes(n, new_node);
 }
 
@@ -131,10 +131,10 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
     static void recursion_success(const char *begin, const Input& input, Tree& pt)
     {
 	ExpectGT(pt.nodes.size(), 0);
-	ExpectEQ(pt.nodes.top()->children.size(), 1);
+	ExpectEQ(pt.nodes.top()->children().size(), 1);
 	
-	auto n = std::move(pt.nodes.top()->children.back());
-	pt.nodes.top()->children.pop_back();
+	auto n = pt.nodes.top()->move_child(0);
+	pt.nodes.top()->children().pop_back();
 
 	if constexpr (GetDiscardRedundant<Self>::value)
 			 n = Base::discard_redundant_nodes(std::move(n));
@@ -160,7 +160,7 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
 	    ExpectGT(pt.nodes.size(), 0);
 
 	    auto new_node = nodes()[begin]->clone();
-	    pt.nodes.top()->children.emplace_back(std::move(new_node));
+	    pt.nodes.top()->emplace_child(std::move(new_node));
 	}
     }
 
@@ -171,8 +171,8 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
 	    ExpectGT(pt.nodes.size(), 0);
 	    
 	    auto n = std::move(nodes()[begin]);
-	    pt.nodes.top()->children.clear();
-	    pt.nodes.top()->children.emplace_back(std::move(n));
+	    pt.nodes.top()->children().clear();
+	    pt.nodes.top()->emplace_child(std::move(n));
 	    
 	}
 	nodes().clear();

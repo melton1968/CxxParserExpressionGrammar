@@ -11,25 +11,27 @@ TEST(PegCst, Node)
     auto c0 = std::make_unique<peg::cst::Node>("child0");
     auto c1 = std::make_unique<MyNode>("child1");
     
-    n->children.emplace_back(std::move(c0));
-    n->children.emplace_back(std::move(c1));
+    n->emplace_child(std::move(c0));
+    n->emplace_child(std::move(c1));
 
-    EXPECT_EQ(n->content, "parent");
-    EXPECT_EQ(n->children[0]->content, "child0");
-    EXPECT_EQ(n->children[1]->content, "child1");
+    EXPECT_EQ(n->content(), "parent");
+    EXPECT_EQ(n->child(0)->content(), "child0");
+    EXPECT_EQ(n->child(1)->content(), "child1");
 
-    EXPECT_EQ(typeid(peg::cst::Node), typeid(*n));
-    EXPECT_EQ(typeid(peg::cst::Node), typeid(*(n->children[0])));
-    EXPECT_EQ(typeid(MyNode), typeid(*(n->children[1])));
+    EXPECT_EQ(typeid(peg::cst::Node), n->tid());
+    EXPECT_EQ(typeid(peg::cst::Node), n->child(0)->tid());
+    EXPECT_EQ(typeid(MyNode), n->child(1)->tid());
     
     auto copy = n->clone();
-    EXPECT_EQ(copy->content, "parent");
-    EXPECT_EQ(copy->children[0]->content, "child0");
-    EXPECT_EQ(copy->children[1]->content, "child1");
+    EXPECT_TRUE(n == copy);
+    
+    EXPECT_EQ(copy->content(), "parent");
+    EXPECT_EQ(copy->child(0)->content(), "child0");
+    EXPECT_EQ(copy->child(1)->content(), "child1");
 
-    EXPECT_EQ(typeid(peg::cst::Node), typeid(*n));
-    EXPECT_EQ(typeid(peg::cst::Node), typeid(*(copy->children[0])));
-    EXPECT_EQ(typeid(MyNode), typeid(*(copy->children[1])));
+    EXPECT_EQ(typeid(peg::cst::Node), copy->tid());
+    EXPECT_EQ(typeid(peg::cst::Node), copy->child(0)->tid());
+    EXPECT_EQ(typeid(MyNode), copy->child(1)->tid());
 }
 
 int main(int argc, char *argv[])

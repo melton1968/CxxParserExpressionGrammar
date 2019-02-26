@@ -61,18 +61,18 @@ int tool_main(int argc, const char *argv[])
 	cout << "match: " << r.match() << endl;
 
 	assert(cst.nodes.size() == 1);
-	assert(cst.nodes.top()->children.size() <= 1);
+	assert(cst.nodes.top()->children().size() <= 1);
 
-	if (cst.nodes.top()->children.size() == 1)
+	if (cst.nodes.top()->children().size() == 1)
 	{
-	    auto& root = cst.nodes.top()->children.back();
-	    print(root);
+	    auto root = cst.nodes.top()->move_child(0);
+	    root->print(cout);
 	    cout << endl;
 	    
 	    cst::transform::apply<ExprPlus, cst::transform::Infix>(root);
 	    cst::transform::apply<ExprMinus, cst::transform::Infix>(root);
 	    cst::transform::apply<Grammar, cst::transform::ReplaceWithFirstChild>(root);
-	    print(root);
+	    root->print(cout);
 	}
     }
 
