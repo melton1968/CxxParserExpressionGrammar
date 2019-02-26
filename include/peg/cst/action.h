@@ -77,10 +77,10 @@ struct BaseAction : NullAction<Parser>
 
     static Node::Ptr discard_redundant_nodes(Node::Ptr n)
     {
-	while (n->children().size() == 1 and Node::TypeId == typeid(*n))
+	while (n->children().size() == 1 and typeid(Node) == n->tid())
 	    n = n->move_child(0);
 	
-	while (n->children().size() == 1 and Node::TypeId == typeid(*(n->child(0))))
+	while (n->children().size() == 1 and typeid(Node) == n->child(0)->tid())
 	    transform::LiftGrandChildren::apply(n);
 		
 	return std::move(n);

@@ -95,14 +95,10 @@ struct Node
     friend bool operator!=(const Ptr& a, const Ptr& b)
     { return not (a == b); }
 
-    static const std::type_index TypeId;
-    
 private:
     string_view m_content;
     Children m_children;
 };
-
-const std::type_index Node::TypeId = typeid(Node);
 
 namespace detail
 {
