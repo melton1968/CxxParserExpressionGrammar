@@ -33,6 +33,15 @@ struct Node
 	return n;
     }
 
+    void replace_children_with_grandchildren()
+    {
+	Children new_children;
+	for (auto& child : children)
+	    for (auto& grandchild : child->children)
+		new_children.emplace_back(std::move(grandchild));
+	std::swap(children, new_children);
+    }
+
     static const std::type_index TypeId;
 };
 
@@ -66,7 +75,7 @@ void print(Node::Ptr& node, size_t level = 0)
     for (size_t i = 0; i < level; ++i)
 	cout << "|   ";
     cout << "'" << node->content << "'";
-    cout << "\t\t\t" << core::type_name(*node);
+    cout << "    " << core::type_name(*node);
     cout << endl;
 
     for (auto& n : node->children)

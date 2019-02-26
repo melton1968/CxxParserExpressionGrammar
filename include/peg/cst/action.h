@@ -14,17 +14,33 @@ struct DiscardChildren
 { static constexpr bool DiscardChildrenValue = V; };
 
 template<class T>
-struct DiscardChildrenValue
+struct GetDiscardChildren
 { static constexpr bool value = false; };
 
 template<class T>
 requires ((T::DiscardChildrenValue == true))
-struct DiscardChildrenValue<T>
+struct GetDiscardChildren<T>
 { static constexpr bool value = true; };
 
-template<class Parser>
+template<bool V>
+struct DiscardRedundant
+{ static constexpr bool DiscardRedundantValue = V; };
+
+template<class T>
+struct GetDiscardRedundant
+{ static constexpr bool value = true; };
+
+template<class T>
+requires ((T::DiscardRedundantValue == false))
+struct GetDiscardRedundant<T>
+{ static constexpr bool value = false; };
+
+template<class Parser, class... Parameters>
 struct BaseAction : NullAction<Parser>
+    , Parameters...
 {
+    using Self = BaseAction<Parser, Parameters...>;
+    
     static void start(const Input& input, Tree& pt)
     {
 	ExpectGT(pt.nodes.size(), 0);
@@ -49,39 +65,30 @@ struct BaseAction : NullAction<Parser>
 	auto n = std::move(pt.nodes.top());
 	pt.nodes.pop();
 
-	if constexpr (DiscardChildrenValue<Parser>::value) n->children.clear();
-	else n = discard_redundant_nodes(std::move(n));
+	if constexpr (GetDiscardChildren<Parser>::value) n->children.clear();
+	else if (GetDiscardRedundant<Self>::value) n = discard_redundant_nodes(std::move(n));
 	
 	n->content = input.match();
 	pt.nodes.top()->children.emplace_back(std::move(n));
 
-	print(pt.nodes.top());
-	cout << endl;
-	
 	EnsureGT(pt.nodes.size(), 0);
     }
 
     static Node::Ptr discard_redundant_nodes(Node::Ptr n)
     {
 	while (n->children.size() == 1 and Node::TypeId == typeid(*n))
-	    n = std::move(n->children.back());
+	    n = std::move(n->children.front());
 	
-	while (n->children.size() == 1 and Node::TypeId == typeid(*(n->children.back())))
-	{
-	    auto old_child = std::move(n->children.back());
-	    n->children.clear();
-	    
-	    for (auto& child : old_child->children)
-		n->children.emplace_back(std::move(child));
-	}
+	while (n->children.size() == 1 and Node::TypeId == typeid(*(n->children.front())))
+	    n->replace_children_with_grandchildren();
 		
 	return std::move(n);
     }
 	
 };
 
-template<class Parser>
-struct Action : BaseAction<Parser>
+template<class Parser, class... Parameters>
+struct Action : BaseAction<Parser, Parameters...>
 {};
 
 void replace_matching_nodes(Node::Ptr& node, Node::Ptr& new_node)
@@ -95,11 +102,12 @@ void replace_matching_nodes(Node::Ptr& node, Node::Ptr& new_node)
 	replace_matching_nodes(n, new_node);
 }
 
-template<class Parser>
+template<class Parser, class... Parameters>
 requires ((Parser::IsLeftRecursionParser == true))
-struct Action<Parser> : BaseAction<Parser>
+struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
 {
-    using Base = BaseAction<Parser>;
+    using Self = Action<Parser, Parameters...>;
+    using Base = BaseAction<Parser, Parameters...>;
     using Nodes = std::map<const char*, Node::Ptr>;
 
     static Nodes& nodes()
@@ -128,7 +136,8 @@ struct Action<Parser> : BaseAction<Parser>
 	auto n = std::move(pt.nodes.top()->children.back());
 	pt.nodes.top()->children.pop_back();
 
-	n = Base::discard_redundant_nodes(std::move(n));
+	if constexpr (GetDiscardRedundant<Self>::value)
+			 n = Base::discard_redundant_nodes(std::move(n));
 
 	if (nodes().find(begin) == nodes().end())
 	    nodes().insert_or_assign(begin, std::move(n));
