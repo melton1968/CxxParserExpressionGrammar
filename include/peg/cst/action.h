@@ -65,6 +65,16 @@ struct BaseAction : NullAction<Parser>
     {
 	while (n->children.size() == 1 and Node::TypeId == typeid(*n))
 	    n = std::move(n->children.back());
+	
+	while (n->children.size() == 1 and Node::TypeId == typeid(*(n->children.back())))
+	{
+	    auto old_child = std::move(n->children.back());
+	    n->children.clear();
+	    
+	    for (auto& child : old_child->children)
+		n->children.emplace_back(std::move(child));
+	}
+		
 	return std::move(n);
     }
 	
