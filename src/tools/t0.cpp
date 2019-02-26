@@ -66,13 +66,12 @@ int tool_main(int argc, const char *argv[])
 	if (cst.nodes.top()->children().size() == 1)
 	{
 	    auto root = cst.nodes.top()->move_child(0);
-	    root->print(cout);
-	    cout << endl;
+	    cout << root << endl;
 	    
 	    cst::transform::apply<ExprPlus, cst::transform::Infix>(root);
 	    cst::transform::apply<ExprMinus, cst::transform::Infix>(root);
 	    cst::transform::apply<Grammar, cst::transform::ReplaceWithFirstChild>(root);
-	    root->print(cout);
+	    cout << root << endl;
 	}
     }
 

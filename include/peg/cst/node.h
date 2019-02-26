@@ -73,9 +73,15 @@ struct Node
 	os << "'" << content() << "'";
 	os << "    " << core::type_name(*this);
 	os << endl;
-
+	
 	for (const auto& n : children())
 	    n->print(os, level+1);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Ptr& n)
+    {
+	n->print(os);
+	return os;
     }
 
     friend bool operator==(const Ptr& a, const Ptr& b)
