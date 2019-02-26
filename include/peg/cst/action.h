@@ -3,8 +3,9 @@
 
 #pragma once
 #include <typeindex>
-#include "peg/cst/tree.h"
 #include "peg/action.h"
+#include "peg/cst/tree.h"
+#include "peg/cst/transform.h"
 
 namespace peg::cst
 {
@@ -80,7 +81,7 @@ struct BaseAction : NullAction<Parser>
 	    n = n->move_child(0);
 	
 	while (n->children().size() == 1 and Node::TypeId == typeid(*(n->child(0))))
-	    n->replace_children_with_grandchildren();
+	    transform::LiftGrandChildren::apply(n);
 		
 	return std::move(n);
     }
@@ -90,17 +91,6 @@ struct BaseAction : NullAction<Parser>
 template<class Parser, class... Parameters>
 struct Action : BaseAction<Parser, Parameters...>
 {};
-
-void replace_matching_nodes(Node::Ptr& node, Node::Ptr& new_node)
-{
-    if (node->content() == new_node->content())
-    {
-	node = new_node->clone();
-	return;
-    }
-    for (auto& n : node->children())
-	replace_matching_nodes(n, new_node);
-}
 
 template<class Parser, class... Parameters>
 requires ((Parser::IsLeftRecursionParser == true))
@@ -143,8 +133,7 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
 	    nodes().insert_or_assign(begin, std::move(n));
 	else
 	{
-	    auto previous_node = std::move(nodes()[begin]);
-	    replace_matching_nodes(n, previous_node);
+	    transform::ReplaceMatchingSubtree::apply(n, nodes()[begin]);
 	    nodes()[begin] = std::move(n);
 	}
     }

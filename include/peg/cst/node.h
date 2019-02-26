@@ -65,15 +65,6 @@ struct Node
 	return n;
     }
 
-    void replace_children_with_grandchildren()
-    {
-	Children new_children;
-	for (auto& child : children())
-	    for (auto& grandchild : child->children())
-		new_children.emplace_back(std::move(grandchild));
-	std::swap(m_children, new_children);
-    }
-
     void print(std::ostream& os, size_t level = 0) const
     {
 	os << "   ";

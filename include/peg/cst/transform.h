@@ -43,6 +43,20 @@ struct LiftGrandChildren
     }
 };
 
+struct ReplaceMatchingSubtree
+{
+    static void apply(Node::Ptr& n, Node::Ptr& replacement)
+    {
+	if (n->content() == replacement->content())
+	{
+	    n = replacement->clone();
+	    return;
+	}
+	for (auto& child : n->children())
+	    apply(child, replacement);
+    }
+};
+
 template<class T, class U>
 void apply(Node::Ptr& n)
 {
