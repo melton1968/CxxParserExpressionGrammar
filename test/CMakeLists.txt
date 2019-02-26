@@ -14,6 +14,7 @@ set(TESTS
   clang/identifier
   clang/keyword
   clang/string
+  cst/node
   identifier
   keyword
   must

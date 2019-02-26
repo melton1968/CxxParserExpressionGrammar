@@ -2,7 +2,9 @@
 //
 
 #pragma once
+#include <typeindex>
 #include "core/common.h"
+#include "core/demangle.h"
 
 namespace peg::cst
 {
@@ -13,6 +15,11 @@ struct Node
     using Self = Node;
     using Ptr = std::unique_ptr<Self>;
     using Children = std::vector<Ptr>;
+
+    Node() = default;
+    Node(string_view arg_content)
+	: content(arg_content)
+    { }
     
     virtual ~Node() = default;
     virtual Ptr make_unique() const { return std::make_unique<Self>(); }
@@ -53,6 +60,13 @@ namespace detail
 template<class Base, class Derived>
 struct Prototype : public Base
 {
+    using Proto = Prototype<Base,Derived>;
+
+    template<class... Args>
+    Prototype(Args&&... args)
+	: Base(args...)
+    { }
+    
     virtual ~Prototype() = default;
     
     virtual std::unique_ptr<Base> make_unique() const override
