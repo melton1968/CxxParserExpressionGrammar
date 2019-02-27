@@ -72,6 +72,14 @@ struct LiftGrandChildren
     }
 };
 
+struct DiscardChildren
+{
+    static void apply(auto& n)
+    {
+	n->children().clear();
+    }
+};
+
 struct ReplaceMatchingSubtree
 {
     static void apply(auto& n, const auto& replacement)
