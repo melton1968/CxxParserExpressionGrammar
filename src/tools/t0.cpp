@@ -11,6 +11,9 @@
 
 using namespace peg;
 
+namespace calculator
+{
+
 struct ConcreteNode : cst::Node<ConcreteNode>
 { 
     ConcreteNode() = default;
@@ -54,9 +57,32 @@ struct Expression : LeftRecursion<Choice<TermExpr, Term>>, ProtoNode<Expression>
 struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>, ProtoNode<Grammar> {};
 
 template<class Parser>
-using MyAction = cst::Action<Parser, ConcreteNode, cst::DiscardRedundant<true>>;
+using Action = cst::Action<Parser, ConcreteNode, cst::DiscardRedundant<true>>;
 
+using Tree = cst::Tree<ConcreteNode>;
 namespace x = peg::cst::transform;
+
+int parse(const string& str)
+{
+    Tree cst;
+    auto r = peg::parse<Grammar, Action>(str, cst);
+
+    assert(r);
+    assert(cst.nodes.size() == 1);
+    assert(cst.nodes.top()->children().size() <= 1);
+    assert(cst.nodes.top()->children().size() == 1);
+	
+    auto root = cst.nodes.top()->move_child(0);
+    x::apply<x::DiscardChildren, Number>(root);
+    x::apply<x::Infix, FactorExpr, TermExpr>(root);
+    x::apply<x::ReplaceWithSecondChild, ExpressionGrouping>(root);
+    x::apply<x::MaybeReplaceWithOnlyChild, Factor, Term, Expression>(root);
+    x::apply<x::ReplaceWithFirstChild, Grammar>(root);
+    return root->eval();
+}
+
+}; // end ns calculator
+
 
 int tool_main(int argc, const char *argv[])
 {
@@ -64,28 +90,7 @@ int tool_main(int argc, const char *argv[])
     opts.process(argc, argv);
 
     for (auto str : opts.extra())
-    {
-        peg::cst::Tree<ConcreteNode> cst;
-	auto r = parse<Grammar, MyAction>(str, cst);
-	cout << "match: " << r.match() << endl;
-
-	assert(cst.nodes.size() == 1);
-	assert(cst.nodes.top()->children().size() <= 1);
-
-	if (cst.nodes.top()->children().size() == 1)
-	{
-	    auto root = cst.nodes.top()->move_child(0);
-	    // cout << root << endl;
-
-	    x::apply<x::DiscardChildren, Number>(root);
-	    x::apply<x::Infix, FactorExpr, TermExpr>(root);
-	    x::apply<x::ReplaceWithSecondChild, ExpressionGrouping>(root);
-	    x::apply<x::MaybeReplaceWithOnlyChild, Factor, Term, Expression>(root);
-	    x::apply<x::ReplaceWithFirstChild, Grammar>(root);
-	    cout << root << endl;
-	    cout << root->eval() << endl;
-	}
-    }
+	cout << calculator::parse(str) << endl;
 
     return 0;
 }

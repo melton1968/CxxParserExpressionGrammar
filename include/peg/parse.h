@@ -9,13 +9,7 @@ namespace peg
 {
 
 template<class Parser, template<class> class... Actions, class... States>
-Input parse(const Input& input, States&... states)
-{
-    return BasicControl<>::template match<Parser, Actions...>(input, states...);
-}
-    
-template<class Parser, template<class> class... Actions, class... States>
-Input parse(const string& str, States&... states)
+Input parse(string_view str, States&... states)
 {
     Input input{ str };
     return BasicControl<>::template match<Parser, Actions...>(input, states...);

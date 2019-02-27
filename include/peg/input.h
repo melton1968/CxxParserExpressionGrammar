@@ -12,9 +12,9 @@ struct Input
     constexpr Input()
     {}
     
-    Input(const string& str)
+    Input(string_view str)
 	: m_status(true)
-	, m_begin(str.c_str())
+	, m_begin(str.begin())
 	, m_end(m_begin + str.size())
 	, m_mark(m_begin)
 	, m_point(m_begin)
