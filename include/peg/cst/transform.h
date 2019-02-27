@@ -22,12 +22,39 @@ struct Infix
     }
 };
 
+struct MaybeInfix
+{
+    static void apply(Node::Ptr& n)
+    {
+	if (n->children().size() == 3)
+	    Infix::apply(n);
+    }
+};
+
 struct ReplaceWithFirstChild
 {
     static void apply(Node::Ptr& n)
     {
 	ExpectGT(n->children().size(), 0);
 	n = n->move_child(0);
+    }
+};
+
+struct ReplaceWithSecondChild
+{
+    static void apply(Node::Ptr& n)
+    {
+	ExpectGT(n->children().size(), 1);
+	n = n->move_child(1);
+    }
+};
+
+struct MaybeReplaceWithOnlyChild
+{
+    static void apply(Node::Ptr& n)
+    {
+	if (n->children().size() == 1)
+	    n = n->move_child(0);
     }
 };
 

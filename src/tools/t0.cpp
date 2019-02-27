@@ -3,6 +3,7 @@
 
 #include "core/tool.h"
 #include "core/demangle.h"
+#include "core/string/lexical_cast.h"
 #include "peg/peg.h"
 #include "peg/expr/expr.h"
 #include "peg/cst/action.h"
@@ -10,15 +11,47 @@
 
 using namespace peg;
 
-struct Number : NoSkip<OneOrMore<Range<'0','9'>>> {};
-struct FactorOp : Or<c::Multiply, c::Divide> {};
-struct TermOp : Or<c::Plus, c::Minus> {};
+struct Number : cst::ProtoNode<Number>
+	      , NoSkip<OneOrMore<Range<'0','9'>>>
+{ };
+
+struct Mul : cst::ProtoNode<Mul>
+	   , c::Multiply
+{ };
+
+struct Div : cst::ProtoNode<Div>
+		, c::Divide
+{ };
+
+struct Add : cst::ProtoNode<Add>
+	   , c::Plus
+{ };
+
+struct Sub : cst::ProtoNode<Sub>
+	   , c::Minus
+{ };
+
+struct FactorOp : Choice<Mul, Div> {};
+struct TermOp : Choice<Add, Sub> {};
 
 struct Expression;
-struct Factor : Choice<Number, Seq<c::OpenParen, Expression, c::CloseParen>>, cst::ProtoNode<Factor> {};
-struct Term : LeftRecursion<Choice<Seq<Term, FactorOp, Factor>, Factor>>, cst::ProtoNode<Term> {};
-struct Expression : LeftRecursion<Choice<Seq<Expression, TermOp, Term>, Term>>, cst::ProtoNode<Expression> {};
-struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>, cst::ProtoNode<Grammar> {};
+struct ExpressionGrouping : cst::ProtoNode<ExpressionGrouping>
+			  , Seq<c::OpenParen, Expression, c::CloseParen> {};
+
+struct Factor : Choice<Number, ExpressionGrouping>
+	      , cst::ProtoNode<Factor>
+{};
+
+struct Term : LeftRecursion<Choice<Seq<Term, FactorOp, Factor>,	Factor>>
+	    , cst::ProtoNode<Term>
+{};
+
+struct Expression : LeftRecursion<Choice<Seq<Expression, TermOp, Term>, Term>>
+		  , cst::ProtoNode<Expression>
+{};
+
+struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>
+	       , cst::ProtoNode<Grammar> {};
 
 // struct Expression;
 // struct Factor : Choice<Number, Seq<c::OpenParen, Expression, c::CloseParen>> {};
@@ -27,7 +60,7 @@ struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>, cst::ProtoNod
 // struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>> {};
 
 template<class Parser>
-using MyAction = cst::Action<Parser, cst::DiscardRedundant<false>>;
+using MyAction = cst::Action<Parser, cst::DiscardRedundant<true>>;
 
 int tool_main(int argc, const char *argv[])
 {
@@ -47,11 +80,16 @@ int tool_main(int argc, const char *argv[])
 	{
 	    auto root = cst.nodes.top()->move_child(0);
 	    cout << root << endl;
-	    
-	    // cst::transform::apply<ExprPlus, cst::transform::Infix>(root);
-	    // cst::transform::apply<ExprMinus, cst::transform::Infix>(root);
-	    // cst::transform::apply<Grammar, cst::transform::ReplaceWithFirstChild>(root);
-	    // cout << root << endl;
+
+	    cst::transform::apply<Factor, cst::transform::MaybeInfix>(root);
+	    cst::transform::apply<Term, cst::transform::MaybeInfix>(root);
+	    cst::transform::apply<Expression, cst::transform::MaybeInfix>(root);
+	    cst::transform::apply<ExpressionGrouping,cst::transform::ReplaceWithSecondChild>(root);
+	    cst::transform::apply<Factor, cst::transform::MaybeReplaceWithOnlyChild>(root);
+	    cst::transform::apply<Term, cst::transform::MaybeReplaceWithOnlyChild>(root);
+	    cst::transform::apply<Expression, cst::transform::MaybeReplaceWithOnlyChild>(root);
+	    cst::transform::apply<Grammar, cst::transform::ReplaceWithFirstChild>(root);
+	    cout << root << endl;
 	}
     }
 
