@@ -2,7 +2,7 @@
 //
 
 #include "core/tool.h"
-#include "../calculator.h"
+#include "peg/cst/examples/calc1.h"
 
 int tool_main(int argc, const char *argv[])
 {

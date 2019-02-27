@@ -2,6 +2,8 @@
 //
 
 #pragma once
+#include "core/common.h"
+#include "core/string/lexical_cast.h"
 #include "peg/peg.h"
 #include "peg/cst/action.h"
 #include "peg/cst/transform.h"

@@ -14,6 +14,7 @@ set(TESTS
   clang/identifier
   clang/keyword
   clang/string
+  cst/calc1
   cst/node
   cst/transform
   identifier
