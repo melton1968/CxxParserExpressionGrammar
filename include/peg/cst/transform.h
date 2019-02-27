@@ -9,7 +9,7 @@ namespace peg::cst::transform
 
 struct Infix
 {
-    static void apply(Node::Ptr& n)
+    static void apply(auto& n)
     {
 	ExpectEQ(n->children().size(), 3);
 
@@ -24,7 +24,7 @@ struct Infix
 
 struct MaybeInfix
 {
-    static void apply(Node::Ptr& n)
+    static void apply(auto& n)
     {
 	if (n->children().size() == 3)
 	    Infix::apply(n);
@@ -33,7 +33,7 @@ struct MaybeInfix
 
 struct ReplaceWithFirstChild
 {
-    static void apply(Node::Ptr& n)
+    static void apply(auto& n)
     {
 	ExpectGT(n->children().size(), 0);
 	n = n->move_child(0);
@@ -42,7 +42,7 @@ struct ReplaceWithFirstChild
 
 struct ReplaceWithSecondChild
 {
-    static void apply(Node::Ptr& n)
+    static void apply(auto& n)
     {
 	ExpectGT(n->children().size(), 1);
 	n = n->move_child(1);
@@ -51,7 +51,7 @@ struct ReplaceWithSecondChild
 
 struct MaybeReplaceWithOnlyChild
 {
-    static void apply(Node::Ptr& n)
+    static void apply(auto& n)
     {
 	if (n->children().size() == 1)
 	    n = n->move_child(0);
@@ -60,9 +60,11 @@ struct MaybeReplaceWithOnlyChild
 
 struct LiftGrandChildren
 {
-    static void apply(Node::Ptr& n)
+    static void apply(auto& n)
     {
-	Node::Children new_children;
+	using NodeType = std::remove_reference_t<decltype(*n)>;
+	using Children = typename NodeType::Children;
+	Children new_children;
 	for (auto& child : n->children())
 	    for (auto& grandchild : child->children())
 		new_children.emplace_back(std::move(grandchild));
@@ -72,7 +74,7 @@ struct LiftGrandChildren
 
 struct ReplaceMatchingSubtree
 {
-    static void apply(Node::Ptr& n, const Node::Ptr& replacement)
+    static void apply(auto& n, const auto& replacement)
     {
 	if (n->content() == replacement->content())
 	{
@@ -85,7 +87,7 @@ struct ReplaceMatchingSubtree
 };
 
 template<class T, class U>
-void apply(Node::Ptr& n)
+void apply(auto& n)
 {
     for (auto& child : n->children())
 	apply<T,U>(child);

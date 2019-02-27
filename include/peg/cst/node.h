@@ -10,10 +10,13 @@
 namespace peg::cst
 {
 
-struct Node
+struct Nothing {};
+
+template<class Base = Nothing>
+struct Node : Base
 {
     static constexpr bool IsNode = true;
-    using Self = Node;
+    using Self = Node<Base>;
     using Ptr = std::unique_ptr<Self>;
     using Children = std::vector<Ptr>;
 
@@ -26,8 +29,8 @@ struct Node
 	: m_content(content)
     { }
 
-    Node(const Node&) = delete;
-    Node(const Node&&) = delete;
+    Node(const Self&) = delete;
+    Node(const Self&&) = delete;
     
     virtual ~Node() = default;
     virtual Ptr make_unique() const { return std::make_unique<Self>(); }
@@ -114,9 +117,6 @@ private:
     Children m_children;
 };
 
-namespace detail
-{
-
 template<class Base, class Derived>
 struct Prototype : public Base
 {
@@ -134,11 +134,6 @@ struct Prototype : public Base
     
     virtual string type_name() const override { return core::type_name<Derived>(); }
 };
-
-}; // end ns detail
-
-template<class Derived>
-using ProtoNode = detail::Prototype<Node, Derived>;
 
 template<class Node>
 concept bool IsNode = Node::IsNode == true;

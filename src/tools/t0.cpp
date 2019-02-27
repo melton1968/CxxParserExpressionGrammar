@@ -11,47 +11,55 @@
 
 using namespace peg;
 
-struct Number : cst::ProtoNode<Number>
-	      , NoSkip<OneOrMore<Range<'0','9'>>>
+struct ICalculation
+{
+    ICalculation() = default;
+    virtual ~ICalculation() = default;
+    virtual index_t eval() const { assert(false); return 0; }
+};
+
+using ConcreteNode = cst::Node<ICalculation>;
+
+template<class Derived>
+struct ProtoNode : cst::Prototype<ConcreteNode, Derived>
 { };
 
-struct Mul : cst::ProtoNode<Mul>
-	   , c::Multiply
-{ };
+struct Number : ProtoNode<Number>, NoSkip<OneOrMore<Range<'0','9'>>>
+{ virtual index_t eval() const override { return core::lexical_cast<int>(content()); } };
 
-struct Div : cst::ProtoNode<Div>
-		, c::Divide
-{ };
+struct Mul : ProtoNode<Mul>, c::Multiply
+{ virtual index_t eval() const override { return child(0)->eval() * child(1)->eval(); } };
 
-struct Add : cst::ProtoNode<Add>
-	   , c::Plus
-{ };
+struct Div : ProtoNode<Div>, c::Divide
+{ virtual index_t eval() const override { return child(0)->eval() / child(1)->eval(); } };
 
-struct Sub : cst::ProtoNode<Sub>
-	   , c::Minus
-{ };
+struct Add : ProtoNode<Add>, c::Plus
+{ virtual index_t eval() const override { return child(0)->eval() + child(1)->eval(); } };
+
+struct Sub : ProtoNode<Sub>, c::Minus
+{ virtual index_t eval() const override { return child(0)->eval() - child(1)->eval(); } };
 
 struct FactorOp : Choice<Mul, Div> {};
 struct TermOp : Choice<Add, Sub> {};
 
 struct Expression;
-struct ExpressionGrouping : cst::ProtoNode<ExpressionGrouping>
+struct ExpressionGrouping : ProtoNode<ExpressionGrouping>
 			  , Seq<c::OpenParen, Expression, c::CloseParen> {};
 
 struct Factor : Choice<Number, ExpressionGrouping>
-	      , cst::ProtoNode<Factor>
+	      , ProtoNode<Factor>
 {};
 
 struct Term : LeftRecursion<Choice<Seq<Term, FactorOp, Factor>,	Factor>>
-	    , cst::ProtoNode<Term>
+	    , ProtoNode<Term>
 {};
 
 struct Expression : LeftRecursion<Choice<Seq<Expression, TermOp, Term>, Term>>
-		  , cst::ProtoNode<Expression>
+		  , ProtoNode<Expression>
 {};
 
 struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>
-	       , cst::ProtoNode<Grammar> {};
+	       , ProtoNode<Grammar> {};
 
 // struct Expression;
 // struct Factor : Choice<Number, Seq<c::OpenParen, Expression, c::CloseParen>> {};
@@ -60,7 +68,7 @@ struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>
 // struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>> {};
 
 template<class Parser>
-using MyAction = cst::Action<Parser, cst::Node, cst::DiscardRedundant<true>>;
+using MyAction = cst::Action<Parser, ConcreteNode, cst::DiscardRedundant<true>>;
 
 int tool_main(int argc, const char *argv[])
 {
@@ -69,7 +77,7 @@ int tool_main(int argc, const char *argv[])
 
     for (auto str : opts.extra())
     {
-        peg::cst::Tree<cst::Node> cst;
+        peg::cst::Tree<ConcreteNode> cst;
 	auto r = parse<Grammar, MyAction>(str, cst);
 	cout << "match: " << r.match() << endl;
 
@@ -90,6 +98,7 @@ int tool_main(int argc, const char *argv[])
 	    cst::transform::apply<Expression, cst::transform::MaybeReplaceWithOnlyChild>(root);
 	    cst::transform::apply<Grammar, cst::transform::ReplaceWithFirstChild>(root);
 	    cout << root << endl;
+	    cout << root->eval() << endl;
 	}
     }
 
