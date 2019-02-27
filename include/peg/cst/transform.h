@@ -94,14 +94,14 @@ struct ReplaceMatchingSubtree
     }
 };
 
-template<class T, class U>
+template<class T, class... Us>
 void apply(auto& n)
 {
     for (auto& child : n->children())
-	apply<T,U>(child);
-    
-    if (typeid(T) == typeid(*n))
-	U::apply(n);
+	apply<T,Us...>(child);
+
+    if ((typeid(Us) == typeid(*n) or ...))
+	    T::apply(n);
 }
 
 }; // end ns peg::cst::transform

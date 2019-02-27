@@ -56,6 +56,8 @@ struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>, ProtoNode<Gra
 template<class Parser>
 using MyAction = cst::Action<Parser, ConcreteNode, cst::DiscardRedundant<true>>;
 
+namespace x = peg::cst::transform;
+
 int tool_main(int argc, const char *argv[])
 {
     core::POpt opts;
@@ -73,16 +75,13 @@ int tool_main(int argc, const char *argv[])
 	if (cst.nodes.top()->children().size() == 1)
 	{
 	    auto root = cst.nodes.top()->move_child(0);
-	    cout << root << endl;
+	    // cout << root << endl;
 
-	    cst::transform::apply<Number, cst::transform::DiscardChildren>(root);
-	    cst::transform::apply<FactorExpr, cst::transform::Infix>(root);
-	    cst::transform::apply<TermExpr, cst::transform::Infix>(root);
-	    cst::transform::apply<ExpressionGrouping,cst::transform::ReplaceWithSecondChild>(root);
-	    cst::transform::apply<Factor, cst::transform::MaybeReplaceWithOnlyChild>(root);
-	    cst::transform::apply<Term, cst::transform::MaybeReplaceWithOnlyChild>(root);
-	    cst::transform::apply<Expression, cst::transform::MaybeReplaceWithOnlyChild>(root);
-	    cst::transform::apply<Grammar, cst::transform::ReplaceWithFirstChild>(root);
+	    x::apply<x::DiscardChildren, Number>(root);
+	    x::apply<x::Infix, FactorExpr, TermExpr>(root);
+	    x::apply<x::ReplaceWithSecondChild, ExpressionGrouping>(root);
+	    x::apply<x::MaybeReplaceWithOnlyChild, Factor, Term, Expression>(root);
+	    x::apply<x::ReplaceWithFirstChild, Grammar>(root);
 	    cout << root << endl;
 	    cout << root->eval() << endl;
 	}

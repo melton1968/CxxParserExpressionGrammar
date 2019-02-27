@@ -20,7 +20,7 @@ TEST(PegCst, InfixTransform)
     n1->emplace_child(DefaultNode::make<MyNode0>("lhs"));
     n1->emplace_child(DefaultNode::make<MyNode0>("rhs"));
     
-    transform::apply<MyNode1, transform::Infix>(n0);
+    transform::apply<transform::Infix, MyNode1>(n0);
     EXPECT_EQ(n0, n1);
 }
 
@@ -32,7 +32,7 @@ TEST(PegCst, ReplacWithFirstChildTransform)
     
     auto n1 = DefaultNode::make<MyNode0>("expr");
     
-    transform::apply<MyNode1, transform::ReplaceWithFirstChild>(n0);
+    transform::apply<transform::ReplaceWithFirstChild, MyNode1>(n0);
     EXPECT_EQ(n0, n1);
 }
 
@@ -51,7 +51,7 @@ TEST(PegCst, LiftGrandChildrenTransform)
     n1->emplace_child(DefaultNode::make<MyNode0>("infix"));
     n1->emplace_child(DefaultNode::make<MyNode0>("rhs"));
     
-    transform::apply<MyNode1, transform::LiftGrandChildren>(n0);
+    transform::apply<transform::LiftGrandChildren, MyNode1>(n0);
     EXPECT_EQ(n0, n1);
 }
 
