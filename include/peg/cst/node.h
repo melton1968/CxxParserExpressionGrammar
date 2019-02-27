@@ -12,12 +12,12 @@ namespace peg::cst
 
 struct Nothing {};
 
-template<class Base = Nothing>
-struct Node : Base
+template<class Derived>
+struct Node
 {
     static constexpr bool IsNode = true;
-    using Self = Node<Base>;
-    using Ptr = std::unique_ptr<Self>;
+    using Self = Node<Derived>;
+    using Ptr = std::unique_ptr<Derived>;
     using Children = std::vector<Ptr>;
 
     template<class T, class... Args>
@@ -33,8 +33,8 @@ struct Node : Base
     Node(const Self&&) = delete;
     
     virtual ~Node() = default;
-    virtual Ptr make_unique() const { return std::make_unique<Self>(); }
-    virtual string type_name() const { return core::type_name<Self>(); }
+    virtual Ptr make_unique() const { return std::make_unique<Derived>(); }
+    virtual string type_name() const { return core::type_name<Derived>(); }
 
     const auto& tid() const { return typeid(*this); }
 

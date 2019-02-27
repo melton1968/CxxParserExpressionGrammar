@@ -11,14 +11,12 @@
 
 using namespace peg;
 
-struct ICalculation
-{
-    ICalculation() = default;
-    virtual ~ICalculation() = default;
+struct ConcreteNode : cst::Node<ConcreteNode>
+{ 
+    ConcreteNode() = default;
+    virtual ~ConcreteNode() = default;
     virtual index_t eval() const { assert(false); return 0; }
 };
-
-using ConcreteNode = cst::Node<ICalculation>;
 
 template<class Derived>
 struct ProtoNode : cst::Prototype<ConcreteNode, Derived>
@@ -60,12 +58,6 @@ struct Expression : LeftRecursion<Choice<Seq<Expression, TermOp, Term>, Term>>
 
 struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>
 	       , ProtoNode<Grammar> {};
-
-// struct Expression;
-// struct Factor : Choice<Number, Seq<c::OpenParen, Expression, c::CloseParen>> {};
-// struct Term : Seq<Factor, ZeroOrMore<FactorOp, Factor>> {};
-// struct Expression : Seq<Term, ZeroOrMore<TermOp, Term>> {};
-// struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>> {};
 
 template<class Parser>
 using MyAction = cst::Action<Parser, ConcreteNode, cst::DiscardRedundant<true>>;
