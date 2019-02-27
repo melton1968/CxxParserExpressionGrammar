@@ -14,18 +14,17 @@ struct Number : NoSkip<OneOrMore<Range<'0','9'>>> {};
 struct FactorOp : Or<c::Multiply, c::Divide> {};
 struct TermOp : Or<c::Plus, c::Minus> {};
 
-// struct Expression;
-// struct ParenExpression : Seq<c::OpenParen, Expression, c::CloseParen> {};
-// struct Factor : Or<Number, ParenExpression> {};
-// struct Term : Seq<Factor, FactorOp, Term> {};
-// struct Expression : Or<Seq<Term, TermOp, Expression>, Term> {};
-// struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>> {};
-
 struct Expression;
-struct Factor : Choice<Number, Seq<c::OpenParen, Expression, c::CloseParen>> {};
-struct Term : Seq<Factor, ZeroOrMore<FactorOp, Factor>> {};
-struct Expression : Seq<Term, ZeroOrMore<TermOp, Term>> {};
-struct Grammar : Seq<Expression, Must<EndOfFile>> {};
+struct Factor : Choice<Number, Seq<c::OpenParen, Expression, c::CloseParen>>, cst::ProtoNode<Factor> {};
+struct Term : LeftRecursion<Choice<Seq<Term, FactorOp, Factor>, Factor>>, cst::ProtoNode<Term> {};
+struct Expression : LeftRecursion<Choice<Seq<Expression, TermOp, Term>, Term>>, cst::ProtoNode<Expression> {};
+struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>, cst::ProtoNode<Grammar> {};
+
+// struct Expression;
+// struct Factor : Choice<Number, Seq<c::OpenParen, Expression, c::CloseParen>> {};
+// struct Term : Seq<Factor, ZeroOrMore<FactorOp, Factor>> {};
+// struct Expression : Seq<Term, ZeroOrMore<TermOp, Term>> {};
+// struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>> {};
 
 template<class Parser>
 using MyAction = cst::Action<Parser, cst::DiscardRedundant<false>>;

@@ -29,12 +29,12 @@ struct DiscardRedundant
 
 template<class T>
 struct GetDiscardRedundant
-{ static constexpr bool value = true; };
+{ static constexpr bool value = false; };
 
 template<class T>
-requires ((T::DiscardRedundantValue == false))
+requires ((T::DiscardRedundantValue == true))
 struct GetDiscardRedundant<T>
-{ static constexpr bool value = false; };
+{ static constexpr bool value = true; };
 
 template<class Parser, class... Parameters>
 struct BaseAction : NullAction<Parser>
@@ -100,12 +100,6 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
     using Base = BaseAction<Parser, Parameters...>;
     using Nodes = std::map<const char*, Node::Ptr>;
 
-    static Nodes& nodes()
-    {
-	static Nodes static_nodes;
-	return static_nodes;
-    }
-    
     static void start(const Input& input, Tree& pt)
     { Base::start(input, pt); }
     
@@ -116,7 +110,7 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
     { Base::success(input, pt); }
 
     static void recursion_begin(const Input& input, Tree& pt)
-    { }
+    {  push_matches(); }
 
     static void recursion_success(const char *begin, const Input& input, Tree& pt)
     {
@@ -127,14 +121,14 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
 	pt.nodes.top()->children().pop_back();
 
 	if constexpr (GetDiscardRedundant<Self>::value)
-			 n = Base::discard_redundant_nodes(std::move(n));
+	 		 n = Base::discard_redundant_nodes(std::move(n));
 
-	if (nodes().find(begin) == nodes().end())
-	    nodes().insert_or_assign(begin, std::move(n));
+	if (not has_match(begin))
+	    assign_match(begin, std::move(n));
 	else
 	{
-	    transform::ReplaceMatchingSubtree::apply(n, nodes()[begin]);
-	    nodes()[begin] = std::move(n);
+	    transform::ReplaceMatchingSubtree::apply(n, get_match(begin));
+	    assign_match(begin, std::move(n));
 	}
     }
 
@@ -145,27 +139,72 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
     {
 	if (input.status())
 	{
-	    ExpectTRUE(nodes().find(begin) != nodes().end());
 	    ExpectGT(pt.nodes.size(), 0);
-
-	    auto new_node = nodes()[begin]->clone();
-	    pt.nodes.top()->emplace_child(std::move(new_node));
+	    pt.nodes.top()->emplace_child(clone_match(begin));
 	}
     }
 
     static void recursion_end(const char *begin, const Input& input, Tree& pt)
     {
-	if (nodes().find(begin) != nodes().end())
+	if (has_match(begin))
 	{
 	    ExpectGT(pt.nodes.size(), 0);
 	    
-	    auto n = std::move(nodes()[begin]);
 	    pt.nodes.top()->children().clear();
-	    pt.nodes.top()->emplace_child(std::move(n));
-	    
+	    pt.nodes.top()->emplace_child(move_match(begin));
 	}
-	nodes().clear();
+	pop_matches();
     }
+
+private:
+    static void push_matches()
+    { static_matches().push(Nodes{}); }
+
+    static void pop_matches()
+    { static_matches().pop(); }
+    
+    static Nodes& current_matches()
+    {
+	ExpectGT(static_matches().size(), 0);
+	return static_matches().top();
+    }
+
+    static bool has_match(const char *begin)
+    { return current_matches().find(begin) != current_matches().end(); }
+    
+    static const Node::Ptr& get_match(const char *begin)
+    {
+	ExpectTRUE(has_match(begin));
+	return current_matches()[begin];
+    }
+
+    static Node::Ptr move_match(const char *begin)
+    {
+	ExpectTRUE(has_match(begin));
+	return std::move(current_matches()[begin]);
+    }
+
+    static Node::Ptr clone_match(const char *begin)
+    {
+	ExpectTRUE(has_match(begin));
+	return std::move(current_matches()[begin]->clone());
+    }
+
+    static void assign_match(const char *begin, Node::Ptr n)
+    {
+	if (has_match(begin))
+	    current_matches()[begin] = std::move(n);
+	else
+	    current_matches().insert_or_assign(begin, std::move(n));
+    }
+
+    static std::stack<Nodes>& static_matches()
+    {
+	static std::stack<Nodes> matches;
+	return matches;
+    }
+
+
 };
 
 }; // end ns peg::cst

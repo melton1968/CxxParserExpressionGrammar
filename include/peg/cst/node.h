@@ -3,6 +3,7 @@
 
 #pragma once
 #include <typeindex>
+#include <sstream>
 #include "core/common.h"
 #include "core/demangle.h"
 
@@ -76,6 +77,13 @@ struct Node
 	
 	for (const auto& n : children())
 	    n->print(os, level+1);
+    }
+
+    string str() const
+    {
+	std::stringstream ss;
+	print(ss);
+	return ss.str();
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Ptr& n)

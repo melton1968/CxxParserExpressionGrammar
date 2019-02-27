@@ -45,7 +45,7 @@ struct LiftGrandChildren
 
 struct ReplaceMatchingSubtree
 {
-    static void apply(Node::Ptr& n, Node::Ptr& replacement)
+    static void apply(Node::Ptr& n, const Node::Ptr& replacement)
     {
 	if (n->content() == replacement->content())
 	{
