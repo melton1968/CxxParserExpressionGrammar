@@ -10,49 +10,30 @@
 
 using namespace peg;
 
-struct Expr;
+struct Number : NoSkip<OneOrMore<Range<'0','9'>>> {};
+struct FactorOp : Or<c::Multiply, c::Divide> {};
+struct TermOp : Or<c::Plus, c::Minus> {};
 
-struct Number : NoSkip<OneOrMore<Range<'0','9'>>>
-	      , cst::ProtoNode<Number>
-	      , cst::DiscardChildren<true>
-{};
+// struct Expression;
+// struct ParenExpression : Seq<c::OpenParen, Expression, c::CloseParen> {};
+// struct Factor : Or<Number, ParenExpression> {};
+// struct Term : Seq<Factor, FactorOp, Term> {};
+// struct Expression : Or<Seq<Term, TermOp, Expression>, Term> {};
+// struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>> {};
 
-struct PlusOp : c::Plus
-	      , cst::ProtoNode<PlusOp>
-{};
-
-struct MinusOp : c::Minus
-	      , cst::ProtoNode<MinusOp>
-{};
-
-struct ExprPlus : Seq<Expr, PlusOp, Number>
-		, cst::ProtoNode<ExprPlus>
-{};
-
-struct ExprMinus : Seq<Expr, MinusOp, Number>
-		, cst::ProtoNode<ExprMinus>
-{};
-
-struct Expr : LeftRecursion<Or<ExprPlus, ExprMinus, Number>>
-	    , cst::ProtoNode<Expr>
-{};
-
-struct Grammar : SkipWhiteSpace<Seq<Expr, Must<EndOfFile>>>
-	       , cst::ProtoNode<Grammar>
-{};
+struct Expression;
+struct Factor : Choice<Number, Seq<c::OpenParen, Expression, c::CloseParen>> {};
+struct Term : Seq<Factor, ZeroOrMore<FactorOp, Factor>> {};
+struct Expression : Seq<Term, ZeroOrMore<TermOp, Term>> {};
+struct Grammar : Seq<Expression, Must<EndOfFile>> {};
 
 template<class Parser>
-using MyAction = cst::Action<Parser, cst::DiscardRedundant<true>>;
+using MyAction = cst::Action<Parser, cst::DiscardRedundant<false>>;
 
 int tool_main(int argc, const char *argv[])
 {
     core::POpt opts;
     opts.process(argc, argv);
-
-    cout << "node: " << sizeof(cst::Node) << endl;
-    cout << "number: " << sizeof(Number) << endl;
-    peg::expr::apply_rt<peg::expr::printer, std::tuple<Expr>>::apply(cout);
-    cout << endl;
 
     for (auto str : opts.extra())
     {
@@ -68,10 +49,10 @@ int tool_main(int argc, const char *argv[])
 	    auto root = cst.nodes.top()->move_child(0);
 	    cout << root << endl;
 	    
-	    cst::transform::apply<ExprPlus, cst::transform::Infix>(root);
-	    cst::transform::apply<ExprMinus, cst::transform::Infix>(root);
-	    cst::transform::apply<Grammar, cst::transform::ReplaceWithFirstChild>(root);
-	    cout << root << endl;
+	    // cst::transform::apply<ExprPlus, cst::transform::Infix>(root);
+	    // cst::transform::apply<ExprMinus, cst::transform::Infix>(root);
+	    // cst::transform::apply<Grammar, cst::transform::ReplaceWithFirstChild>(root);
+	    // cout << root << endl;
 	}
     }
 
