@@ -29,7 +29,7 @@ struct LeftRecursion
 
 	seeds[begin] = begin;
 	(Actions<Self>::recursion_begin(input, states...), ...);
-	
+
 	auto longest = input;
 	while(true)
 	{
@@ -49,7 +49,7 @@ struct LeftRecursion
 	    }
 	}
 
-	seeds.clear();
+	seeds.erase(begin);
 	(Actions<LeftRecursion<P>>::recursion_end(begin, longest, states...), ...);
 	return longest;
     }
