@@ -4,12 +4,14 @@
 #include <gtest/gtest.h>
 #include "peg/cst/node.h"
 
+using namespace peg::cst;
+
 TEST(PegCst, Node)
 {
-    struct MyNode : peg::cst::ProtoNode<MyNode> { using Proto::Proto; };
-    auto n = std::make_unique<peg::cst::Node<>>("parent");
-    auto c0 = std::make_unique<peg::cst::Node<>>("child0");
-    auto c1 = std::make_unique<MyNode>("child1");
+    struct MyNode : Prototype<DefaultNode, MyNode> { using Proto::Proto; };
+    auto n = DefaultNode::make<DefaultNode>("parent");
+    auto c0 = DefaultNode::make<DefaultNode>("child0");
+    auto c1 = DefaultNode::make<MyNode>("child1");
     
     n->emplace_child(std::move(c0));
     n->emplace_child(std::move(c1));
@@ -18,8 +20,8 @@ TEST(PegCst, Node)
     EXPECT_EQ(n->child(0)->content(), "child0");
     EXPECT_EQ(n->child(1)->content(), "child1");
 
-    EXPECT_EQ(typeid(peg::cst::Node<>), n->tid());
-    EXPECT_EQ(typeid(peg::cst::Node<>), n->child(0)->tid());
+    EXPECT_EQ(typeid(DefaultNode), n->tid());
+    EXPECT_EQ(typeid(DefaultNode), n->child(0)->tid());
     EXPECT_EQ(typeid(MyNode), n->child(1)->tid());
     
     auto copy = n->clone();
@@ -29,8 +31,8 @@ TEST(PegCst, Node)
     EXPECT_EQ(copy->child(0)->content(), "child0");
     EXPECT_EQ(copy->child(1)->content(), "child1");
 
-    EXPECT_EQ(typeid(peg::cst::Node<>), copy->tid());
-    EXPECT_EQ(typeid(peg::cst::Node<>), copy->child(0)->tid());
+    EXPECT_EQ(typeid(DefaultNode), copy->tid());
+    EXPECT_EQ(typeid(DefaultNode), copy->child(0)->tid());
     EXPECT_EQ(typeid(MyNode), copy->child(1)->tid());
 }
 

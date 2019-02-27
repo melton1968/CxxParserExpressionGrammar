@@ -40,24 +40,18 @@ struct Sub : ProtoNode<Sub>, c::Minus
 struct FactorOp : Choice<Mul, Div> {};
 struct TermOp : Choice<Add, Sub> {};
 
+struct Term;
 struct Expression;
+
 struct ExpressionGrouping : ProtoNode<ExpressionGrouping>
 			  , Seq<c::OpenParen, Expression, c::CloseParen> {};
 
-struct Factor : Choice<Number, ExpressionGrouping>
-	      , ProtoNode<Factor>
-{};
-
-struct Term : LeftRecursion<Choice<Seq<Term, FactorOp, Factor>,	Factor>>
-	    , ProtoNode<Term>
-{};
-
-struct Expression : LeftRecursion<Choice<Seq<Expression, TermOp, Term>, Term>>
-		  , ProtoNode<Expression>
-{};
-
-struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>
-	       , ProtoNode<Grammar> {};
+struct Factor : Choice<Number, ExpressionGrouping>, ProtoNode<Factor> {};
+struct FactorExpr : Seq<Term, FactorOp, Factor>, ProtoNode<FactorExpr> {};
+struct Term : LeftRecursion<Choice<FactorExpr, Factor>>, ProtoNode<Term> {};
+struct TermExpr : Seq<Expression, TermOp, Term>, ProtoNode<TermExpr> {};
+struct Expression : LeftRecursion<Choice<TermExpr, Term>>, ProtoNode<Expression> {};
+struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>, ProtoNode<Grammar> {};
 
 template<class Parser>
 using MyAction = cst::Action<Parser, ConcreteNode, cst::DiscardRedundant<true>>;
@@ -81,9 +75,9 @@ int tool_main(int argc, const char *argv[])
 	    auto root = cst.nodes.top()->move_child(0);
 	    cout << root << endl;
 
-	    cst::transform::apply<Factor, cst::transform::MaybeInfix>(root);
-	    cst::transform::apply<Term, cst::transform::MaybeInfix>(root);
-	    cst::transform::apply<Expression, cst::transform::MaybeInfix>(root);
+	    cst::transform::apply<Number, cst::transform::DiscardChildren>(root);
+	    cst::transform::apply<FactorExpr, cst::transform::Infix>(root);
+	    cst::transform::apply<TermExpr, cst::transform::Infix>(root);
 	    cst::transform::apply<ExpressionGrouping,cst::transform::ReplaceWithSecondChild>(root);
 	    cst::transform::apply<Factor, cst::transform::MaybeReplaceWithOnlyChild>(root);
 	    cst::transform::apply<Term, cst::transform::MaybeReplaceWithOnlyChild>(root);

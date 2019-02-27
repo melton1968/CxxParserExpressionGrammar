@@ -10,8 +10,6 @@
 namespace peg::cst
 {
 
-struct Nothing {};
-
 template<class Derived>
 struct Node
 {
@@ -115,6 +113,12 @@ struct Node
 private:
     string_view m_content;
     Children m_children;
+};
+
+struct DefaultNode : Node<DefaultNode>
+{
+    using Base = Node<DefaultNode>;
+    using Base::Base;
 };
 
 template<class Base, class Derived>
