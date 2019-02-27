@@ -36,30 +36,32 @@ requires ((T::DiscardRedundantValue == true))
 struct GetDiscardRedundant<T>
 { static constexpr bool value = true; };
 
-template<class Parser, class... Parameters>
+template<class Parser, class ConcreteNode, class... Parameters>
 struct BaseAction : NullAction<Parser>
     , Parameters...
 {
-    using Self = BaseAction<Parser, Parameters...>;
+    using Self = BaseAction<Parser, ConcreteNode, Parameters...>;
+    using NodeType = ConcreteNode;
+    using TreeType = Tree<NodeType>;
     
-    static void start(const Input& input, Tree& pt)
+    static void start(const Input& input, TreeType& pt)
     {
 	ExpectGT(pt.nodes.size(), 0);
 	
 	if constexpr (IsNode<Parser>) pt.nodes.emplace(std::make_unique<Parser>());
-	else pt.nodes.emplace(std::make_unique<Node>());
+	else pt.nodes.emplace(std::make_unique<NodeType>());
 
 	EnsureGT(pt.nodes.size(), 1);
     }
     
-    static void failure(const Input& input, Tree& pt)
+    static void failure(const Input& input, TreeType& pt)
     {
 	ExpectGT(pt.nodes.size(), 1);
 	pt.nodes.pop();
 	EnsureGT(pt.nodes.size(), 0);
     }
     
-    static void success(const Input& input, Tree& pt)
+    static void success(const Input& input, TreeType& pt)
     {
 	ExpectGT(pt.nodes.size(), 1);
 	
@@ -75,12 +77,12 @@ struct BaseAction : NullAction<Parser>
 	EnsureGT(pt.nodes.size(), 0);
     }
 
-    static Node::Ptr discard_redundant_nodes(Node::Ptr n)
+    static auto discard_redundant_nodes(auto n)
     {
-	while (n->children().size() == 1 and typeid(Node) == n->tid())
+	while (n->children().size() == 1 and typeid(NodeType) == n->tid())
 	    n = n->move_child(0);
 	
-	while (n->children().size() == 1 and typeid(Node) == n->child(0)->tid())
+	while (n->children().size() == 1 and typeid(NodeType) == n->child(0)->tid())
 	    transform::LiftGrandChildren::apply(n);
 		
 	return std::move(n);
@@ -88,31 +90,33 @@ struct BaseAction : NullAction<Parser>
 	
 };
 
-template<class Parser, class... Parameters>
-struct Action : BaseAction<Parser, Parameters...>
+template<class Parser, class ConcreteNode, class... Parameters>
+struct Action : BaseAction<Parser, ConcreteNode, Parameters...>
 {};
 
-template<class Parser, class... Parameters>
+template<class Parser, class ConcreteNode, class... Parameters>
 requires ((Parser::IsLeftRecursionParser == true))
-struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
+struct Action<Parser, ConcreteNode, Parameters...> : BaseAction<Parser, ConcreteNode,Parameters...>
 {
-    using Self = Action<Parser, Parameters...>;
-    using Base = BaseAction<Parser, Parameters...>;
-    using Nodes = std::map<const char*, Node::Ptr>;
+    using Self = Action<Parser, ConcreteNode, Parameters...>;
+    using Base = BaseAction<Parser, ConcreteNode, Parameters...>;
+    using NodeType = ConcreteNode;
+    using Nodes = std::map<const char*, typename NodeType::Ptr>;
+    using TreeType = Tree<NodeType>;
 
-    static void start(const Input& input, Tree& pt)
+    static void start(const Input& input, TreeType& pt)
     { Base::start(input, pt); }
     
-    static void failure(const Input& input, Tree& pt)
+    static void failure(const Input& input, TreeType& pt)
     { Base::failure(input, pt); }
     
-    static void success(const Input& input, Tree& pt)
+    static void success(const Input& input, TreeType& pt)
     { Base::success(input, pt); }
 
-    static void recursion_begin(const Input& input, Tree& pt)
+    static void recursion_begin(const Input& input, TreeType& pt)
     {  push_matches(); }
 
-    static void recursion_success(const char *begin, const Input& input, Tree& pt)
+    static void recursion_success(const char *begin, const Input& input, TreeType& pt)
     {
 	ExpectGT(pt.nodes.size(), 0);
 	ExpectEQ(pt.nodes.top()->children().size(), 1);
@@ -132,10 +136,10 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
 	}
     }
 
-    static void recursion_failure(const char *begin, const Input& input, Tree& pt)
+    static void recursion_failure(const char *begin, const Input& input, TreeType& pt)
     { }
 
-    static void recursion_matched(const char *begin, const Input& input, Tree& pt)
+    static void recursion_matched(const char *begin, const Input& input, TreeType& pt)
     {
 	if (input.status())
 	{
@@ -144,7 +148,7 @@ struct Action<Parser, Parameters...> : BaseAction<Parser, Parameters...>
 	}
     }
 
-    static void recursion_end(const char *begin, const Input& input, Tree& pt)
+    static void recursion_end(const char *begin, const Input& input, TreeType& pt)
     {
 	if (has_match(begin))
 	{
@@ -172,25 +176,25 @@ private:
     static bool has_match(const char *begin)
     { return current_matches().find(begin) != current_matches().end(); }
     
-    static const Node::Ptr& get_match(const char *begin)
+    static const auto& get_match(const char *begin)
     {
 	ExpectTRUE(has_match(begin));
 	return current_matches()[begin];
     }
 
-    static Node::Ptr move_match(const char *begin)
+    static auto move_match(const char *begin)
     {
 	ExpectTRUE(has_match(begin));
 	return std::move(current_matches()[begin]);
     }
 
-    static Node::Ptr clone_match(const char *begin)
+    static auto clone_match(const char *begin)
     {
 	ExpectTRUE(has_match(begin));
 	return std::move(current_matches()[begin]->clone());
     }
 
-    static void assign_match(const char *begin, Node::Ptr n)
+    static void assign_match(const char *begin, auto n)
     {
 	if (has_match(begin))
 	    current_matches()[begin] = std::move(n);

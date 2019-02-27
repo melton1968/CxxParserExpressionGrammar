@@ -8,14 +8,15 @@
 namespace peg::cst
 {
 
+template<class ConcreteNode>
 struct Tree
 {
-    Tree()
-    {
-	nodes.push(std::make_unique<Node>());
-    }
+    using NodeType = ConcreteNode;
     
-    std::stack<Node::Ptr> nodes;
+    Tree()
+    { nodes.push(std::make_unique<NodeType>()); }
+    
+    std::stack<typename NodeType::Ptr> nodes;
     size_t tree_level{0};
     size_t parse_level{0};
 };

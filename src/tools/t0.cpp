@@ -60,7 +60,7 @@ struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>>
 // struct Grammar : SkipWhiteSpace<Seq<Expression, Must<EndOfFile>>> {};
 
 template<class Parser>
-using MyAction = cst::Action<Parser, cst::DiscardRedundant<true>>;
+using MyAction = cst::Action<Parser, cst::Node, cst::DiscardRedundant<true>>;
 
 int tool_main(int argc, const char *argv[])
 {
@@ -69,7 +69,7 @@ int tool_main(int argc, const char *argv[])
 
     for (auto str : opts.extra())
     {
-	peg::cst::Tree cst;
+        peg::cst::Tree<cst::Node> cst;
 	auto r = parse<Grammar, MyAction>(str, cst);
 	cout << "match: " << r.match() << endl;
 
