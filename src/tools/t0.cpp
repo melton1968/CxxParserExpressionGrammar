@@ -168,8 +168,26 @@ private:
     std::vector<typename T::Ptr> m_output;
 };
 
+struct ActionTag
+{ static constexpr bool IsAction = true; };
+
+template<class T>
+concept bool ContextAction = T::IsAction == true;
+
+template<class... Ts>
+concept bool ContextActions = (ContextAction<Ts> and ...);
+
+struct ParserTag
+{ static constexpr bool IsParser = true; };
+
+template<class T>
+concept bool ParserCombinator = T::IsParser == true;
+
+template<class... Ts>
+concept bool ParserCombinators = (ParserCombinator<Ts> and ...);
+
 template<class N>
-struct Push
+struct Push : ActionTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -181,7 +199,7 @@ struct Push
 };
 
 template<class N>
-struct PushChild
+struct PushChild : ActionTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -193,7 +211,7 @@ struct PushChild
 };
 
 template<class N>
-struct PushParent
+struct PushParent : ActionTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -204,7 +222,7 @@ struct PushParent
     }
 };
 
-struct AbsorbChild
+struct AbsorbChild : ActionTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -214,7 +232,7 @@ struct AbsorbChild
     }
 };
 
-struct Pop
+struct Pop : ActionTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -225,7 +243,7 @@ struct Pop
 };
 
 template<class N>
-struct Swap
+struct Swap : ActionTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -235,7 +253,7 @@ struct Swap
     }
 };
 
-struct Mark
+struct Mark : ParserTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context&)
@@ -245,7 +263,7 @@ struct Mark
     }
 };
 
-struct End
+struct End : ParserTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context&)
@@ -253,7 +271,7 @@ struct End
 };
 
 template<char C>
-struct Char
+struct Char : ParserTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context&)
@@ -264,7 +282,7 @@ struct Char
     }
 };
 
-struct Digits
+struct Digits : ParserTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -281,16 +299,31 @@ struct Digits
 };
 
 template<class P, class... Ps>
-struct Sequence
+struct Link : ParserTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
     {
-	if (not Control::template match<P>(input, context))
+	if (not P::template match<Control>(input, context))
 	    return false;
-	return (Control::template match<Ps>(input, context) and ...);
+	return (Ps::template match<Control>(input, context) and ...);
     }
 };
+
+template<ParserCombinator Parser, class... Parsers>
+struct Sequence : ParserTag
+{
+    template<class Control, class Context>
+    static bool match(Input& input, Context& context)
+    {
+	if (not Control::template match<Parser>(input, context))
+	    return false;
+	return (Control::template match<Parsers>(input, context) and ...);
+    }
+};
+
+template<ParserCombinator Parser, ContextAction Action, class... Ts>
+struct Sequence<Parser, Action, Ts...> : Sequence<Link<Parser, Action>, Ts...> {};
 
 template<char C, class... Ps>
 struct Sequence1 : Sequence<Char<C>, Ps...> {};
@@ -299,7 +332,7 @@ template<char C1, class P, char C2, class... Ps>
 struct Sequence3 : Sequence<Char<C1>, P, Char<C2>, Ps...> {};
 
 template<class... Ps>
-struct Choice
+struct Choice : ParserTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -307,7 +340,7 @@ struct Choice
 };
 
 template<class P>
-struct ZeroOrMore
+struct ZeroOrMore : ParserTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -324,6 +357,9 @@ struct BasicControl
     template<class Parser, class Context>
     static bool match(Input& input, Context& context)
     {
+	while (std::isspace(input.peek()))
+	    input.advance(1);
+	
 	auto p = input.point();
 	auto r = Parser::template match<Self>(input, context);
 	if (input.point() > p and not r)
@@ -375,13 +411,14 @@ struct Div : BasicNode
 
 struct Term;
 struct Terms;
+struct Factor;
 
-struct AddSuffix : Sequence1<'+', PushParent<Add>, Term, AbsorbChild> {};
-struct SubSuffix : Sequence1<'-', PushParent<Sub>, Term, AbsorbChild> {};
+struct AddSuffix : Sequence1<'+', PushParent<Add>, Mark, Term, AbsorbChild> {};
+struct SubSuffix : Sequence1<'-', PushParent<Sub>, Mark, Term, AbsorbChild> {};
 struct TermSuffix : Choice<AddSuffix, SubSuffix> {};
 
-struct MulSuffix : Sequence1<'*', PushParent<Mul>, Term, AbsorbChild> {};
-struct DivSuffix : Sequence1<'/', PushParent<Div>, Term, AbsorbChild> {};
+struct MulSuffix : Sequence1<'*', PushParent<Mul>, Mark, Factor, AbsorbChild> {};
+struct DivSuffix : Sequence1<'/', PushParent<Div>, Mark, Factor, AbsorbChild> {};
 struct FactorSuffix : Choice<MulSuffix, DivSuffix> {};
 
 struct Number : Sequence<Digits, Push<Num>> {};
