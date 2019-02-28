@@ -411,13 +411,10 @@ struct FactorSuffix : Choice<MulSuffix, DivSuffix> {};
 struct Number : Sequence<Link<Digits, Push<Num>>> {};
 struct Group : Sequence<Char<'('>, Expression, Char<')'>> {};
 
-struct Factor : Choice<Group, Number> {};
-struct Factors : Sequence<Factor, ZeroOrMore<FactorSuffix>> {};
+struct Factor : Choice<Number, Group> {};
+struct Term : Sequence<Factor, ZeroOrMore<FactorSuffix>> {};
+struct Expression : Sequence<Term, ZeroOrMore<TermSuffix>> {};
 
-struct Term : Choice<Group, Factors> {};
-struct Terms : Sequence<Term, ZeroOrMore<TermSuffix>> {};
-
-struct Expression : Terms {};
 struct Grammar : Sequence<Expression, End> {};
 
 int tool_main(int argc, const char *argv[])
