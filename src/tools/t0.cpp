@@ -29,6 +29,7 @@ struct Input
 
     void advance(index_t distance) { m_point += distance; }
     void reset_mark() { m_mark = m_point; }
+    void set_mark(const char *mark) { m_mark = mark; }
 
 private:
     const char *m_begin{nullptr};
@@ -189,68 +190,47 @@ concept bool ParserCombinators = (ParserCombinator<Ts> and ...);
 template<class N>
 struct Push : ActionTag
 {
-    template<class Control, class Context>
-    static bool match(Input& input, Context& context)
-    {
-	context.template push<N>(input.match());
-	input.reset_mark();
-	return true;
-    }
+    template<class Context>
+    static void apply(const Input& input, Context& context)
+    { context.template push<N>(input.match()); }
 };
 
 template<class N>
 struct PushChild : ActionTag
 {
-    template<class Control, class Context>
-    static bool match(Input& input, Context& context)
-    {
-	context.template push_child<N>(input.match());
-	input.reset_mark();
-	return true;
-    }
+    template<class Context>
+    static void apply(const Input& input, Context& context)
+    { context.template push_child<N>(input.match()); }
 };
 
 template<class N>
 struct PushParent : ActionTag
 {
-    template<class Control, class Context>
-    static bool match(Input& input, Context& context)
-    {
-	context.template push_parent<N>(input.match());
-	input.reset_mark();
-	return true;
-    }
+    template<class Context>
+    static void apply(const Input& input, Context& context)
+    { context.template push_parent<N>(input.match()); }
 };
 
 struct AbsorbChild : ActionTag
 {
-    template<class Control, class Context>
-    static bool match(Input& input, Context& context)
-    {
-	context.absorb_child();
-	return true;
-    }
+    template<class Context>
+    static void apply(const Input& input, Context& context)
+    { context.absorb_child(); }
 };
 
 struct Pop : ActionTag
 {
-    template<class Control, class Context>
-    static bool match(Input& input, Context& context)
-    {
-	context.pop();
-	return true;
-    }
+    template<class Context>
+    static void apply(const Input& input, Context& context)
+    { context.pop(); }
 };
 
 template<class N>
 struct Swap : ActionTag
 {
-    template<class Control, class Context>
-    static bool match(Input& input, Context& context)
-    {
-	context.swap();
-	return true;
-    }
+    template<class Context>
+    static void apply(Input& input, Context& context)
+    { context.swap(); }
 };
 
 struct Mark : ParserTag
@@ -298,20 +278,25 @@ struct Digits : ParserTag
     }
 };
 
-template<class P, class... Ps>
+template<class Parser, ContextActions... Actions>
 struct Link : ParserTag
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
     {
-	if (not P::template match<Control>(input, context))
+	if (not Parser::template match<Control>(input, context))
 	    return false;
-	return (Ps::template match<Control>(input, context) and ...);
+	(Actions::apply(input, context), ...);
+	return true;
     }
 };
 
-template<ParserCombinator Parser, class... Parsers>
-struct Sequence : ParserTag
+
+template<char C, ContextActions... Actions>
+struct LinkC : Link<Char<C>, Actions...> {};
+
+template<class Parser, class... Parsers>
+struct Sequence
 {
     template<class Control, class Context>
     static bool match(Input& input, Context& context)
@@ -321,15 +306,6 @@ struct Sequence : ParserTag
 	return (Control::template match<Parsers>(input, context) and ...);
     }
 };
-
-template<ParserCombinator Parser, ContextAction Action, class... Ts>
-struct Sequence<Parser, Action, Ts...> : Sequence<Link<Parser, Action>, Ts...> {};
-
-template<char C, class... Ps>
-struct Sequence1 : Sequence<Char<C>, Ps...> {};
-
-template<char C1, class P, char C2, class... Ps>
-struct Sequence3 : Sequence<Char<C1>, P, Char<C2>, Ps...> {};
 
 template<class... Ps>
 struct Choice : ParserTag
@@ -359,15 +335,18 @@ struct BasicControl
     {
 	while (std::isspace(input.peek()))
 	    input.advance(1);
-	
-	auto p = input.point();
+
+	input.reset_mark();
+	auto old_point = input.point();
 	auto r = Parser::template match<Self>(input, context);
-	if (input.point() > p and not r)
+	
+	if (input.point() > old_point and not r)
 	{
 	    cout << "error: " << string(input.begin(), input.end()) << endl;
-	    cout << "error: " << string(p - input.begin(), ' ') << "^" << endl;
+	    cout << "error: " << string(old_point - input.begin(), ' ') << "^" << endl;
 	    exit(0);
 	}
+
 	return r;
     }
 };
@@ -410,19 +389,27 @@ struct Div : BasicNode
 
 
 struct Term;
-struct Terms;
 struct Factor;
+struct Expression;
 
-struct AddSuffix : Sequence1<'+', PushParent<Add>, Mark, Term, AbsorbChild> {};
-struct SubSuffix : Sequence1<'-', PushParent<Sub>, Mark, Term, AbsorbChild> {};
+struct AddAction : LinkC<'+', PushParent<Add>> {};
+struct SubAction : LinkC<'-', PushParent<Sub>> {};
+struct MulAction : LinkC<'*', PushParent<Mul>> {};
+struct DivAction : LinkC<'/', PushParent<Div>> {};
+
+struct TermAction : Link<Term, AbsorbChild> {};
+struct FactorAction : Link<Factor, AbsorbChild> {};
+
+struct AddSuffix : Sequence<AddAction, TermAction> {};
+struct SubSuffix : Sequence<SubAction, TermAction> {};
 struct TermSuffix : Choice<AddSuffix, SubSuffix> {};
 
-struct MulSuffix : Sequence1<'*', PushParent<Mul>, Mark, Factor, AbsorbChild> {};
-struct DivSuffix : Sequence1<'/', PushParent<Div>, Mark, Factor, AbsorbChild> {};
+struct MulSuffix : Sequence<MulAction, Mark, FactorAction> {};
+struct DivSuffix : Sequence<DivAction, Mark, FactorAction> {};
 struct FactorSuffix : Choice<MulSuffix, DivSuffix> {};
 
-struct Number : Sequence<Digits, Push<Num>> {};
-struct Group : Sequence1<'(', Mark, Terms, Char<')'>> {};
+struct Number : Sequence<Link<Digits, Push<Num>>> {};
+struct Group : Sequence<Char<'('>, Expression, Char<')'>> {};
 
 struct Factor : Choice<Group, Number> {};
 struct Factors : Sequence<Factor, ZeroOrMore<FactorSuffix>> {};
@@ -430,7 +417,8 @@ struct Factors : Sequence<Factor, ZeroOrMore<FactorSuffix>> {};
 struct Term : Choice<Group, Factors> {};
 struct Terms : Sequence<Term, ZeroOrMore<TermSuffix>> {};
 
-struct Grammar : Sequence<Terms, End> {};
+struct Expression : Terms {};
+struct Grammar : Sequence<Expression, End> {};
 
 int tool_main(int argc, const char *argv[])
 {
@@ -439,12 +427,11 @@ int tool_main(int argc, const char *argv[])
 
     for (auto str : opts.extra())
     {
-	Input input{str};
-	ContextContainer<BasicNode> context;
-	auto r = BasicControl::template match<Grammar>(input, context);
-	cout << r << " " << context.top()->eval() << endl;
-	cout << context.str() << endl;
-	
+    	Input input{str};
+    	ContextContainer<BasicNode> context;
+    	auto r = BasicControl::template match<Grammar>(input, context);
+    	cout << r << " " << context.top()->eval() << endl;
+    	cout << context.str() << endl;
     }
 
     return 0;
