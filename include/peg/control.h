@@ -14,11 +14,19 @@ template<class Parser>
 struct DebugAction : NullAction<Parser>
 {
     using Type = DebugAction<Parser>;
+    
+    template<class... States>
+    static void failure(const Input& input, States&&...)
+    {
+	auto view = core::type_name<Type>();
+	cout << "failure: " << string(view) << ": ";
+	cout << input.match() << endl;
+    }
     template<class... States>
     static void success(const Input& input, States&&...)
     {
 	auto view = core::type_name<Type>();
-	cout << string(view) << ": ";
+	cout << "success: " << string(view) << ": ";
 	cout << input.match() << endl;
     }
 };
