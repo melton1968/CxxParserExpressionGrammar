@@ -29,10 +29,13 @@ struct Expr : LeftRecursion<
 
 int tool_main(int argc, const char *argv[])
 {
-    core::POpt opts;
-    opts.process(argc, argv);
+    auto opts = ArgParse
+	(
+	 argValues<'*',vector,string>("", "", 1)
+	 );
+    opts.parse(argc, argv);
 
-    for (auto& str : opts.extra())
+    for (auto& str : opts.get<'*'>())
     {
 	auto r = parse<Expr>(str);
 	cout << str << " : " << r.status() << " : " << r.match() << endl;

@@ -419,10 +419,13 @@ struct Grammar : Sequence<Expression, End> {};
 
 int tool_main(int argc, const char *argv[])
 {
-    core::POpt opts;
-    opts.process(argc, argv);
+    auto opts = ArgParse
+	(
+	 argValues<'*',vector,string>("", "", 1)
+	 );
+    opts.parse(argc, argv);
 
-    for (auto str : opts.extra())
+    for (auto str : opts.get<'*'>())
     {
     	Input input{str};
     	ContextContainer<BasicNode> context;

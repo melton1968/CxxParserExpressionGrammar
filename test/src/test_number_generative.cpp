@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include "peg/peg.h"
-#include "ranges/view.h"
+#include "ranges/views.h"
 
 static constexpr size_t NumberSamples = 1'000;
 

@@ -144,13 +144,16 @@ struct Calculator<c::CloseParen> : NullAction<c::CloseParen>
 
 int tool_main(int argc, const char *argv[])
 {
-    core::POpt opts;
-    opts.add_flag("trace", 't', "Trace computation");
-    opts.process(argc, argv);
+    auto opts = ArgParse
+	(
+	 argFlag<'t'>("trace", "Trace computation"),
+	 argValues<'*',vector,string>("EXPR", "Expression to calculate", 1)
+	 );
+    opts.parse(argc, argv);
 
-    auto trace = opts.flag("trace");
+    auto trace = opts.get<'t'>();
 
-    for (const auto& expr : opts.extra())
+    for (const auto& expr : opts.get<'*'>())
     {
 	Computation c{ trace };
 	auto r = parse<Grammar,Calculator>(expr, c);

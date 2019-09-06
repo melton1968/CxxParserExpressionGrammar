@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include "peg/parse.h"
 #include "peg/clang/parser.h"
-#include "ranges/view.h"
+#include "ranges/views.h"
 
 TEST(PegClang, FloatingConstantFailure)
 {
