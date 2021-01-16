@@ -1,4 +1,4 @@
-// Copyright (C) 2019 by Mark Melton
+// Copyright (C) 2019, 2021 by Mark Melton
 //
 
 #include <stack>
@@ -173,19 +173,19 @@ struct ActionTag
 { static constexpr bool IsAction = true; };
 
 template<class T>
-concept bool ContextAction = T::IsAction == true;
+concept ContextAction = T::IsAction == true;
 
 template<class... Ts>
-concept bool ContextActions = (ContextAction<Ts> and ...);
+concept ContextActions = (ContextAction<Ts> and ...);
 
 struct ParserTag
 { static constexpr bool IsParser = true; };
 
 template<class T>
-concept bool ParserCombinator = T::IsParser == true;
+concept ParserCombinator = T::IsParser == true;
 
 template<class... Ts>
-concept bool ParserCombinators = (ParserCombinator<Ts> and ...);
+concept ParserCombinators = (ParserCombinator<Ts> and ...);
 
 template<class N>
 struct Push : ActionTag

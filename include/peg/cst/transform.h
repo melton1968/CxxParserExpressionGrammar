@@ -1,4 +1,4 @@
-// Copyright (C) 2019 by Mark Melton
+// Copyright (C) 2019, 2021 by Mark Melton
 //
 
 #pragma once
@@ -94,15 +94,15 @@ struct ReplaceMatchingSubtree
     }
 };
 
-template<class T, class... Us>
-void apply(auto& n)
-{
-    for (auto& child : n->children())
-	apply<T,Us...>(child);
+// template<class T, class... Us>
+// void apply(auto& n)
+// {
+//     for (auto& child : n->children())
+// 	apply<T,Us...>(child);
 
-    if ((typeid(Us) == typeid(*n) or ...))
-	    T::apply(n);
-}
+//     if ((typeid(Us) == typeid(*n) or ...))
+// 	    T::apply(n);
+// }
 
 }; // end ns peg::cst::transform
 

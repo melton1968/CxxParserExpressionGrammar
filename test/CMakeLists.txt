@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ./bin)
 
+add_dependencies(cxx_depends cxx_googletest)
+include(${DEPENDS_SOURCE_DIR}/googletest.cmake)
+
 set(TESTS
   at
   block
@@ -14,9 +17,9 @@ set(TESTS
   clang/identifier
   clang/keyword
   clang/string
-  cst/calc1
+  # cst/calc1
   cst/node
-  cst/transform
+  # cst/transform
   identifier
   keyword
   must
@@ -40,13 +43,21 @@ foreach(NAME ${TESTS})
   string(REPLACE / _ CATNAME ${NAME})
   
   set(TEST_NAME test_${CATNAME})
-  set(TEST_FILE ${PROJECT_SOURCE_DIR}/test/src/${DIRNAME}/test_${BASENAME}.cpp)
-  if(EXISTS ${TEST_FILE})
+  set(TEST_FILE1 ${PROJECT_SOURCE_DIR}/test/src/${DIRNAME}/test_${BASENAME}.cpp)
+  set(TEST_FILE2 ${PROJECT_SOURCE_DIR}/test/src/${DIRNAME}/test_${CATNAME}.cpp)
+  if(EXISTS ${TEST_FILE1})
+    set(TEST_FILE ${TEST_FILE1})
+  elseif(EXISTS ${TEST_FILE2})
+    set(TEST_FILE ${TEST_FILE2})
   else()
-    set(TEST_FILE ${PROJECT_SOURCE_DIR}/test/src/${DIRNAME}/test_${CATNAME}.cpp)    
+    message(FATAL "Cannot find test file for ${NAME}")
   endif()
-  
+
+  list(APPEND TEST_TARGETS ${TEST_NAME})
   add_executable(${TEST_NAME} ${TEST_FILE})
   add_test(${TEST_NAME} bin/${TEST_NAME})
-  target_link_libraries(${TEST_NAME} core fmt gtest)
+  target_link_libraries(${TEST_NAME} PUBLIC cxx_peg googletest Threads::Threads c++)
+  target_include_directories(${TEST_NAME} PUBLIC ../include/core)
 endforeach(NAME)
+
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS ${TEST_TARGETS})

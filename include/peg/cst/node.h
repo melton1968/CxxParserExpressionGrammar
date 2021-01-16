@@ -1,4 +1,4 @@
-// Copyright (C) 2019 by Mark Melton
+// Copyright (C) 2019, 2021 by Mark Melton
 //
 
 #pragma once
@@ -140,6 +140,6 @@ struct Prototype : public Base
 };
 
 template<class Node>
-concept bool IsNode = Node::IsNode == true;
+concept IsNode = Node::IsNode == true;
 
 }; // end ns peg::cst
